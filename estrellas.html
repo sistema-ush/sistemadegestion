@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Buenas prácticas ⭐</title>
+<style>
+  :root {
+    --ink: #F1F0EC; --paper: #14161B; --card: #1E2128;
+    --line: rgba(255,255,255,0.08); --line-strong: rgba(255,255,255,0.16); --muted: #9B9A93;
+    --teal: #3FBBA8; --teal-bg: #16332F;
+    --coral: #E08064; --coral-bg: #3A2620;
+    --amber: #E0A93E; --amber-bg: #3A2E14;
+    --danger: #E0645C;
+    --green: #6FCB6A; --green-bg: #17331A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif; line-height: 1.5;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .subtitle { color: var(--muted); font-size: 14px; margin: 0 0 24px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 14px; padding: 20px; margin-bottom: 16px;
+  }
+  label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+  input[type="text"], textarea {
+    width: 100%; background: var(--paper); color: var(--ink);
+    border: 1px solid var(--line-strong); border-radius: 8px;
+    padding: 12px; font-size: 16px; font-family: inherit; margin-bottom: 16px;
+  }
+  textarea { resize: vertical; min-height: 90px; }
+  .btn {
+    width: 100%; background: var(--teal); color: #0A1512; border: none;
+    border-radius: 8px; padding: 14px; font-size: 16px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+  }
+  .btn:active { opacity: 0.85; }
+  .btn.secondary {
+    background: none; border: 1px solid var(--line-strong); color: var(--ink);
+    font-weight: 600; margin-top: 10px;
+  }
+  .error-text { color: var(--danger); font-size: 13px; margin: -8px 0 16px; display: none; }
+  .success-box {
+    background: var(--green-bg); border: 1px solid var(--green);
+    border-radius: 10px; padding: 16px; margin-bottom: 16px; font-size: 14px;
+    display: none;
+  }
+  .hola { font-size: 15px; color: var(--muted); margin-bottom: 4px; }
+  .hola strong { color: var(--ink); }
+  .tope-info { font-size: 12px; color: var(--muted); margin: -6px 0 16px; }
+  .datalist-hint { font-size: 12px; color: var(--muted); margin: -10px 0 16px; }
+  .lista-recientes { margin-top: 8px; }
+  .item-reciente {
+    padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px;
+  }
+  .item-reciente:last-child { border-bottom: none; }
+  .item-reciente .destinatario { font-weight: 600; }
+  .item-reciente .fecha { color: var(--muted); font-size: 12px; }
+  .podio-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .podio-item:first-child { border-top: none; }
+  .podio-item .pscore { font-weight: 700; }
+  .hidden { display: none !important; }
+  .equipo-label { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 0 0 4px; }
+  .loading { text-align: center; color: var(--muted); padding: 40px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="equipo-label">EQUIPO</p>
+  <h1>⭐ Buenas prácticas</h1>
+  <p class="subtitle">Reconocé a un compañero por algo bueno que hizo.</p>
+
+  <div id="loadingBox" class="loading">Cargando...</div>
+
+  <!-- PANTALLA DE IDENTIFICACIÓN -->
+  <div id="loginBox" class="card hidden">
+    <label for="inputDni">Últimos 4 dígitos de tu DNI</label>
+    <input type="text" id="inputDni" inputmode="numeric" maxlength="4" placeholder="Ej: 4107">
+    <div class="error-text" id="errorLogin"></div>
+    <button class="btn" id="btnIngresar">Ingresar</button>
+  </div>
+
+  <!-- SELECCIÓN CUANDO HAY VARIOS CON LOS MISMOS 4 DÍGITOS -->
+  <div id="seleccionBox" class="card hidden">
+    <label>Encontramos más de una persona. ¿Cuál sos vos?</label>
+    <div id="listaSeleccion"></div>
+    <button class="btn secondary" id="btnVolverSeleccion">Volver</button>
+  </div>
+
+  <!-- FORMULARIO PRINCIPAL -->
+  <div id="formBox" class="hidden">
+    <div class="card">
+      <p class="hola">¡Hola, <strong id="nombreActual"></strong>! 👋</p>
+      <p class="tope-info" id="topeInfo"></p>
+    </div>
+
+    <div class="card">
+      <p style="font-size:14px; color: var(--muted); margin: 0 0 16px;">A veces lo que más suma en el equipo no se ve: alguien que ayudó, que escuchó, que cubrió sin que se lo pidan. Hacelo visible.</p>
+      <div class="success-box" id="successBox">✅ ¡Estrella cargada! Gracias por reconocer a tu compañero.</div>
+      <label for="inputReceptor">¿A quién vas a regalarle una estrella hoy?</label>
+      <input type="text" id="inputReceptor" list="listaReceptores" placeholder="Escribí el nombre...">
+      <datalist id="listaReceptores"></datalist>
+      <label for="inputNota">¿Qué hizo? (obligatorio)</label>
+      <textarea id="inputNota" placeholder="Ej: Me ayudó a cerrar el turno cuando se complicó todo."></textarea>
+      <div class="error-text" id="errorForm"></div>
+      <button class="btn" id="btnDarEstrella">Dar estrella ⭐</button>
+    </div>
+
+    <div class="card">
+      <label style="margin-bottom:10px;">⭐ Ranking del cuatrimestre — quién recibió más estrellas</label>
+      <div id="rankingRecibidas"></div>
+    </div>
+
+    <div class="card">
+      <label style="margin-bottom:10px;">⭐ Ranking del cuatrimestre — quién dio más estrellas</label>
+      <div id="rankingDadas"></div>
+    </div>
+
+    <div class="card">
+      <label style="margin-bottom:10px;">Tus últimas estrellas dadas</label>
+      <div class="lista-recientes" id="listaRecientes"></div>
+    </div>
+
+    <button class="btn secondary" id="btnSalir">Salir</button>
+  </div>
+</div>
+
+<!-- Firebase: misma base de datos que el sistema de coordinación -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBUpejeU-EyMAc4qWjJfJa9j9DNceBA_90",
+    authDomain: "coordinacion-rrhh.firebaseapp.com",
+    projectId: "coordinacion-rrhh",
+    storageBucket: "coordinacion-rrhh.firebasestorage.app",
+    messagingSenderId: "384861800722",
+    appId: "1:384861800722:web:4e8b7c3d090e4cd9660bcb"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const TOPE_ESTRELLAS_MES = 3;
+  const K_EMP = 'empleados-data';
+  const K_BP = 'buenas-practicas-data';
+
+  let empleados = [];
+  let buenasPracticas = [];
+  let empleadoActual = null;
+  let candidatos = [];
+
+  function escapeHtml(str) {
+    return (str || '').replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+  function soloDigitos(s) { return (s || '').replace(/\D/g, ''); }
+  function ultimos4(dni) {
+    const d = soloDigitos(dni);
+    return d.slice(-4);
+  }
+  function fmtFecha(fecha) {
+    if (!fecha) return '';
+    const [a, m, d] = fecha.split('-');
+    return `${d}/${m}/${a}`;
+  }
+
+  async function cargarDatos() {
+    try {
+      const rEmp = await db.collection('storage').doc(K_EMP).get();
+      empleados = rEmp.exists ? JSON.parse(rEmp.data().value) : [];
+    } catch (e) { empleados = []; }
+    try {
+      const rBp = await db.collection('storage').doc(K_BP).get();
+      buenasPracticas = rBp.exists ? JSON.parse(rBp.data().value) : [];
+    } catch (e) { buenasPracticas = []; }
+
+    document.getElementById('loadingBox').classList.add('hidden');
+    document.getElementById('loginBox').classList.remove('hidden');
+  }
+
+  async function guardarBuenasPracticas() {
+    try {
+      await db.collection('storage').doc(K_BP).set({ value: JSON.stringify(buenasPracticas), updatedAt: Date.now() });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function empleadosActivos() {
+    return empleados.filter(e => (e.estadoLaboral || 'Activo') === 'Activo');
+  }
+
+  document.getElementById('btnIngresar').addEventListener('click', () => {
+    const valor = document.getElementById('inputDni').value.trim();
+    const errEl = document.getElementById('errorLogin');
+    if (valor.length !== 4 || !/^\d{4}$/.test(valor)) {
+      errEl.textContent = 'Escribí los 4 números de tu DNI.';
+      errEl.style.display = 'block';
+      return;
+    }
+    const coincidencias = empleadosActivos().filter(e => ultimos4(e.dni) === valor);
+    if (coincidencias.length === 0) {
+      errEl.textContent = 'No encontramos a nadie con esos números. Avisale a coordinación.';
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+    if (coincidencias.length === 1) {
+      ingresarComo(coincidencias[0]);
+    } else {
+      candidatos = coincidencias;
+      mostrarSeleccion();
+    }
+  });
+
+  document.getElementById('inputDni').addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') document.getElementById('btnIngresar').click();
+  });
+
+  function mostrarSeleccion() {
+    document.getElementById('loginBox').classList.add('hidden');
+    document.getElementById('seleccionBox').classList.remove('hidden');
+    document.getElementById('listaSeleccion').innerHTML = candidatos.map((e, i) => `
+      <button class="btn secondary" style="margin-bottom:8px;" onclick="window.__elegirCandidato(${i})">${escapeHtml(e.nombre)} — ${escapeHtml(e.gimnasio)}</button>
+    `).join('');
+  }
+  window.__elegirCandidato = (i) => ingresarComo(candidatos[i]);
+
+  document.getElementById('btnVolverSeleccion').addEventListener('click', () => {
+    document.getElementById('seleccionBox').classList.add('hidden');
+    document.getElementById('loginBox').classList.remove('hidden');
+    document.getElementById('inputDni').value = '';
+  });
+
+  function ingresarComo(emp) {
+    empleadoActual = emp;
+    document.getElementById('loginBox').classList.add('hidden');
+    document.getElementById('seleccionBox').classList.add('hidden');
+    document.getElementById('formBox').classList.remove('hidden');
+    document.getElementById('nombreActual').textContent = emp.nombre;
+    poblarReceptores();
+    actualizarTopeInfo();
+    renderRecientes();
+    renderRankings();
+  }
+
+  function poblarReceptores() {
+    const otros = empleadosActivos().filter(e => e.id !== empleadoActual.id);
+    document.getElementById('listaReceptores').innerHTML = otros.map(e => `<option value="${escapeHtml(e.nombre)}">`).join('');
+  }
+
+  function idPorNombre(nombre) {
+    const limpio = (nombre || '').trim().toLowerCase();
+    const emp = empleadosActivos().find(e => e.nombre.trim().toLowerCase() === limpio);
+    return emp ? emp.id : null;
+  }
+
+  function estrellasDadasEsteMes() {
+    const mes = new Date().toISOString().slice(0,7);
+    return buenasPracticas.filter(b => b.dadaPorId === empleadoActual.id && b.fecha && b.fecha.slice(0,7) === mes).length;
+  }
+  function estrellasRecibidasEsteMes(receptorId) {
+    const mes = new Date().toISOString().slice(0,7);
+    return buenasPracticas.filter(b => b.receptorId === receptorId && b.fecha && b.fecha.slice(0,7) === mes).length;
+  }
+
+  function actualizarTopeInfo() {
+    const dadas = estrellasDadasEsteMes();
+    document.getElementById('topeInfo').textContent = `Diste ${dadas} de ${TOPE_ESTRELLAS_MES} estrellas este mes.`;
+  }
+
+  function rangoCuatrimestreActual() {
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const cuatrimestre = Math.floor(hoy.getMonth() / 4); // 0, 1, 2
+    const mesInicio = cuatrimestre * 4;
+    const mesFin = mesInicio + 3;
+    const inicio = `${anio}-${String(mesInicio + 1).padStart(2,'0')}-01`;
+    const ultimoDia = new Date(anio, mesFin + 1, 0).getDate();
+    const fin = `${anio}-${String(mesFin + 1).padStart(2,'0')}-${String(ultimoDia).padStart(2,'0')}`;
+    return [inicio, fin];
+  }
+
+  function nombrePorId(id) {
+    if (id === 'coordinacion') return 'Coordinación';
+    const emp = empleados.find(e => e.id === id);
+    return emp ? emp.nombre : 'Empleado eliminado';
+  }
+
+  function calcularRanking(campo) {
+    const [inicio, fin] = rangoCuatrimestreActual();
+    const conteo = {};
+    buenasPracticas
+      .filter(b => b.fecha && b.fecha >= inicio && b.fecha <= fin)
+      .forEach(b => {
+        const id = b[campo];
+        conteo[id] = (conteo[id] || 0) + 1;
+      });
+    return Object.entries(conteo)
+      .map(([id, cantidad]) => ({ nombre: nombrePorId(id), cantidad }))
+      .sort((a,b) => b.cantidad - a.cantidad);
+  }
+
+  function renderRankingEnContenedor(contenedorId, campo) {
+    const ranking = calcularRanking(campo).slice(0, 5);
+    const el = document.getElementById(contenedorId);
+    if (ranking.length === 0) {
+      el.innerHTML = '<p style="color: var(--muted); font-size:13px;">Todavía no hay estrellas este cuatrimestre.</p>';
+      return;
+    }
+    const medallas = ['🥇','🥈','🥉'];
+    el.innerHTML = ranking.map((r, i) => `
+      <div class="podio-item">
+        <div>${medallas[i] || ''} ${escapeHtml(r.nombre)}</div>
+        <div class="pscore">${r.cantidad}</div>
+      </div>`).join('');
+  }
+
+  function renderRankings() {
+    renderRankingEnContenedor('rankingRecibidas', 'receptorId');
+    renderRankingEnContenedor('rankingDadas', 'dadaPorId');
+  }
+
+  function renderRecientes() {
+    const propias = buenasPracticas
+      .filter(b => b.dadaPorId === empleadoActual.id)
+      .sort((a,b) => b.fecha.localeCompare(a.fecha))
+      .slice(0, 5);
+    const el = document.getElementById('listaRecientes');
+    if (propias.length === 0) {
+      el.innerHTML = '<p style="color: var(--muted); font-size:13px;">Todavía no diste ninguna estrella.</p>';
+      return;
+    }
+    el.innerHTML = propias.map(b => {
+      const receptor = empleados.find(e => e.id === b.receptorId);
+      return `
+        <div class="item-reciente">
+          <div class="destinatario">⭐ ${escapeHtml(receptor ? receptor.nombre : 'Empleado eliminado')}</div>
+          <div class="fecha">${fmtFecha(b.fecha)}</div>
+          <div>${escapeHtml(b.nota)}</div>
+        </div>`;
+    }).join('');
+  }
+
+  document.getElementById('btnDarEstrella').addEventListener('click', async () => {
+    const receptorTexto = document.getElementById('inputReceptor').value;
+    const nota = document.getElementById('inputNota').value.trim();
+    const errEl = document.getElementById('errorForm');
+    const successEl = document.getElementById('successBox');
+    successEl.style.display = 'none';
+
+    if (!receptorTexto.trim() || !nota) {
+      errEl.textContent = 'Elegí a quién y contá qué hizo antes de guardar.';
+      errEl.style.display = 'block';
+      return;
+    }
+    const receptorId = idPorNombre(receptorTexto);
+    if (!receptorId) {
+      errEl.textContent = `No encontramos a "${receptorTexto}" entre los empleados. Elegí una opción de la lista sugerida.`;
+      errEl.style.display = 'block';
+      return;
+    }
+    if (receptorId === empleadoActual.id) {
+      errEl.textContent = 'No podés darte una estrella a vos mismo.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (estrellasDadasEsteMes() >= TOPE_ESTRELLAS_MES) {
+      errEl.textContent = `Ya diste ${TOPE_ESTRELLAS_MES} estrellas este mes. No podés dar más.`;
+      errEl.style.display = 'block';
+      return;
+    }
+    if (estrellasRecibidasEsteMes(receptorId) >= TOPE_ESTRELLAS_MES) {
+      const receptor = empleados.find(e => e.id === receptorId);
+      errEl.textContent = `${receptor ? receptor.nombre : 'Esta persona'} ya recibió ${TOPE_ESTRELLAS_MES} estrellas este mes. No puede recibir más.`;
+      errEl.style.display = 'block';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    const data = {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+      fecha: new Date().toISOString().slice(0,10),
+      dadaPorId: empleadoActual.id,
+      receptorId,
+      nota,
+      creadoEn: Date.now()
+    };
+    buenasPracticas.push(data);
+    const ok = await guardarBuenasPracticas();
+    if (ok) {
+      document.getElementById('inputReceptor').value = '';
+      document.getElementById('inputNota').value = '';
+      successEl.style.display = 'block';
+      actualizarTopeInfo();
+      renderRecientes();
+      renderRankings();
+    } else {
+      buenasPracticas.pop();
+      errEl.textContent = 'No se pudo guardar. Probá de nuevo.';
+      errEl.style.display = 'block';
+    }
+  });
+
+  document.getElementById('btnSalir').addEventListener('click', () => {
+    empleadoActual = null;
+    document.getElementById('formBox').classList.add('hidden');
+    document.getElementById('inputDni').value = '';
+    document.getElementById('loginBox').classList.remove('hidden');
+  });
+
+  cargarDatos();
+</script>
+</body>
+</html>

@@ -21,6 +21,62 @@
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--paper); color: var(--ink); font-family: 'Inter', -apple-system, sans-serif; line-height: 1.5; }
   .wrap { max-width: 1000px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+  /* ---------- BARRA LATERAL FIJA DE NAVEGACIÓN ---------- */
+  .sidebar-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 220px;
+    height: 100vh;
+    background: var(--card);
+    border-right: 1px solid var(--line);
+    padding: 24px 0;
+    overflow-y: auto;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sidebar-nav .sidebar-title {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    padding: 0 20px 12px;
+  }
+  .sidebar-nav .tab-btn {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    text-align: left;
+    padding: 12px 20px;
+    background: none;
+    border: none;
+    border-left: 3px solid transparent;
+    border-bottom: none;
+    margin-bottom: 0;
+    color: var(--muted);
+    cursor: pointer;
+    width: 100%;
+  }
+  .sidebar-nav .tab-btn:hover { background: var(--paper); color: var(--ink); }
+  .sidebar-nav .tab-btn.active { color: var(--ink); border-left-color: var(--ink); background: var(--paper); border-bottom-color: transparent; }
+  .badge-nuevo {
+    display: inline-block; background: var(--danger); color: #fff;
+    font-size: 11px; font-weight: 700; border-radius: 10px;
+    padding: 1px 7px; margin-left: 6px; vertical-align: middle;
+  }
+  body.has-sidebar .wrap { margin-left: 220px; max-width: none; padding-left: 2.5rem; }
+  @media (max-width: 860px) {
+    .sidebar-nav { position: static; width: 100%; height: auto; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--line); }
+    .sidebar-nav .sidebar-title { display: none; }
+    .sidebar-nav .tab-btn { border-left: none; border-bottom: 2px solid transparent; white-space: nowrap; }
+    .sidebar-nav .tab-btn.active { border-left-color: transparent; border-bottom-color: var(--ink); }
+    body.has-sidebar .wrap { margin-left: 0; padding-left: 1.5rem; }
+  }
   header.top {
     display: flex; justify-content: space-between; align-items: flex-end;
     flex-wrap: wrap; gap: 1rem;
@@ -202,7 +258,6 @@
   .dashboard-nivel1 .metric.m-rojo .mlabel { color: rgba(255,255,255,0.85); }
 
   .alert-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; background: var(--coral-bg); color: var(--coral); margin-bottom: 8px; margin-left: 4px; }
-  .seguimiento-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 20px; background: #E1EDFB; color: #185FA5; margin-bottom: 8px; margin-left: 4px; }
 
   .legend { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
   .legend-item { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 12.5px; }
@@ -291,7 +346,18 @@
   @media (max-width: 560px) { .form-grid { grid-template-columns: 1fr; } }
 </style>
 </head>
-<body>
+<body class="has-sidebar">
+<div class="sidebar-nav" id="sidebarNav">
+  <div class="sidebar-title">Capital Humano</div>
+  <button class="tab-btn active" data-tab="empleados">Empleados</button>
+  <button class="tab-btn" data-tab="informes">Reuniones</button>
+  <button class="tab-btn" data-tab="evaluaciones">Evaluaciones de desempeño</button>
+  <button class="tab-btn" data-tab="faltas">Faltas</button>
+  <button class="tab-btn" data-tab="reconocimiento">Reconocimiento</button>
+  <button class="tab-btn" data-tab="vacaciones">Vacaciones</button>
+  <button class="tab-btn" data-tab="licencias">Licencias y Certificados</button>
+  <button class="tab-btn" data-tab="buenaspracticas">⭐ Buenas prácticas<span class="badge-nuevo" id="badgeBp" style="display:none;"></span></button>
+</div>
 <div class="lock-screen" id="lockScreen">
   <div class="lock-box">
     <h2>🔒 Capital Humano IM</h2>
@@ -332,7 +398,7 @@
   </header>
   </div>
 
-  <div class="dashboard-row">
+  <div class="dashboard-row" id="dashboardRow">
     <div class="dashboard dashboard-nivel1 semaforo-col" id="dashboard"></div>
     <div class="indicadores-col">
       <div class="dashboard dashboard-nivel2" id="dashboardSecundario"></div>
@@ -344,15 +410,6 @@
 
   <div class="layout-grid">
     <div class="main-col">
-
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="empleados">Empleados</button>
-    <button class="tab-btn" data-tab="informes">Reuniones y evaluaciones</button>
-    <button class="tab-btn" data-tab="faltas">Faltas</button>
-    <button class="tab-btn" data-tab="reconocimiento">Reconocimiento</button>
-    <button class="tab-btn" data-tab="vacaciones">Vacaciones</button>
-    <button class="tab-btn" data-tab="licencias">Licencias y Certificados</button>
-  </div>
 
   <div class="tab-panel active" id="panel-empleados">
     <div class="toolbar">
@@ -396,11 +453,9 @@
       <select id="fAreaInf">
         <option value="">Todos los tipos</option>
         <option value="Individual">Individual</option>
-        <option value="Evaluación de desempeño">Evaluación de desempeño</option>
         <option value="Área técnica">Área técnica</option>
         <option value="Área de ventas">Área de ventas</option>
         <option value="De coordinación">De coordinación</option>
-        <option value="Automático (sistema)">Automático (sistema)</option>
       </select>
       <select id="fEstadoInf">
         <option value="">Con o sin evaluación</option>
@@ -410,58 +465,58 @@
       </select>
       <input type="month" id="fMesInf" title="Filtrar por mes">
       <input type="text" id="fBuscarInf" placeholder="Buscar por participante, tema o palabra clave...">
-      <button class="btn" id="btnNuevoInf">+ Nueva reunión / evaluación</button>
+      <button class="btn" id="btnNuevoInf">+ Nueva reunión</button>
     </div>
     <div class="status" id="statusInf">Cargando...</div>
     <div id="listaInf"></div>
   </div>
 
-  <div class="tab-panel" id="panel-reconocimiento">
+  <div class="tab-panel" id="panel-evaluaciones">
+    <p style="font-size:13px; color: var(--muted); margin: 0 0 12px;">Se carga una vez por cuatrimestre, con el puntaje que resulte de la evaluación (armada aparte). Se muestra como referencia en Reconocimiento — la decisión final la toma coordinación.</p>
+    <div class="toolbar">
+      <select id="fGimnasioEval">
+        <option value="">Todos los gimnasios</option>
+        <option value="Active">Active</option>
+        <option value="IM Studio">IM Studio</option>
+        <option value="Impacto">Impacto</option>
+      </select>
+      <input type="month" id="fMesEval" title="Filtrar por mes">
+      <input type="text" id="fBuscarEval" placeholder="Buscar por empleado o nota...">
+      <button class="btn" id="btnNuevoEval">+ Nueva evaluación de desempeño</button>
+    </div>
+    <div class="status" id="statusEval">Cargando...</div>
+    <div id="listaEval"></div>
+  </div>
+
+  <div class="tab-panel" id="panel-buenaspracticas">
+    <p style="font-size:13px; color: var(--muted); margin: 0 0 12px;">Las estrellas se cargan desde la página del equipo (con DNI). Acá solo se ven los rankings y el historial, como referencia.</p>
+
     <div class="rubrica">
-      <div class="rubrica-toggle" onclick="toggleBloque('rubrica-body')">
-        <span>Ver rúbrica: qué significa cada puntaje (1 a 10)</span>
-        <span id="rubrica-arrow">▾</span>
+      <div class="rubrica-toggle" onclick="toggleBloque('bpRankings-body')">
+        <span>⭐ Rankings del cuatrimestre actual</span>
+        <span class="rubrica-chevron">▾</span>
       </div>
-      <div class="rubrica-body" id="rubrica-body">
-        <div class="rubrica-pilar">
-          <h4>🕒 Horario — Cumplimiento y asistencia</h4>
-          <p class="estandar">Estándar (10): puntualidad estricta en el inicio y la finalización de los turnos, sin inasistencias injustificadas ni avisos extemporáneos.</p>
-          <div class="banda-row"><span class="brange">9–10</span><span>Cumple el estándar sin excepciones en todo el período.</span></div>
-          <div class="banda-row"><span class="brange">7–8</span><span>Cumple mayormente; alguna llegada tarde o aviso extemporáneo aislado.</span></div>
-          <div class="banda-row"><span class="brange">5–6</span><span>Llegadas tarde o inasistencias repetidas que ya requieren conversación formal.</span></div>
-          <div class="banda-row"><span class="brange">3–4</span><span>Patrón sostenido de impuntualidad o inasistencia que afecta la operación.</span></div>
-          <div class="banda-row"><span class="brange">1–2</span><span>Incumplimiento grave y reiterado, con impacto directo en el servicio.</span></div>
-        </div>
-        <div class="rubrica-pilar">
-          <h4>✅ Estándares — Operación e imagen</h4>
-          <p class="estandar">Estándar (10): orden y limpieza en el área de trabajo, uso adecuado del uniforme y cumplimiento riguroso de las políticas internas (celular, mate, atención al público).</p>
-          <div class="banda-row"><span class="brange">9–10</span><span>Cumple todos los estándares de la guía sin observaciones en las supervisiones.</span></div>
-          <div class="banda-row"><span class="brange">7–8</span><span>Cumple mayormente; observaciones menores y puntuales en algún informe.</span></div>
-          <div class="banda-row"><span class="brange">5–6</span><span>Observaciones recurrentes en más de una supervisión del período.</span></div>
-          <div class="banda-row"><span class="brange">3–4</span><span>Incumplimientos frecuentes de imagen o políticas internas.</span></div>
-          <div class="banda-row"><span class="brange">1–2</span><span>Desatención sostenida de los estándares, pese a llamados de atención.</span></div>
-        </div>
-        <div class="rubrica-pilar">
-          <h4>🤝 Compromiso — Involucramiento</h4>
-          <p class="estandar">Estándar (10): proactividad ante imprevistos, predisposición para cubrir horarios especiales, participación en eventos y propuestas de mejora.</p>
-          <div class="banda-row"><span class="brange">9–10</span><span>Se anticipa, propone mejoras y participa activamente en eventos y capacitaciones.</span></div>
-          <div class="banda-row"><span class="brange">7–8</span><span>Buena predisposición general, participación regular aunque no siempre proactiva.</span></div>
-          <div class="banda-row"><span class="brange">5–6</span><span>Cumple lo mínimo; poca iniciativa o participación esporádica en instancias de equipo.</span></div>
-          <div class="banda-row"><span class="brange">3–4</span><span>Baja predisposición ante imprevistos o pedidos de cobertura.</span></div>
-          <div class="banda-row"><span class="brange">1–2</span><span>Desinterés sostenido, sin participación en la vida del equipo.</span></div>
-        </div>
-        <div class="rubrica-pilar">
-          <h4>👥 Clientes — Satisfacción</h4>
-          <p class="estandar">Estándar (10): menciones positivas, cordialidad, vocación de servicio y capacidad de respuesta que impacten en la fidelización.</p>
-          <div class="banda-row"><span class="brange">9–10</span><span>Menciones positivas frecuentes en encuestas o canales oficiales.</span></div>
-          <div class="banda-row"><span class="brange">7–8</span><span>Buena percepción general, sin quejas registradas en el período.</span></div>
-          <div class="banda-row"><span class="brange">5–6</span><span>Percepción neutra; ni menciones destacadas ni quejas relevantes.</span></div>
-          <div class="banda-row"><span class="brange">3–4</span><span>Alguna queja puntual registrada en encuestas o canales oficiales.</span></div>
-          <div class="banda-row"><span class="brange">1–2</span><span>Quejas reiteradas o un episodio grave de mala atención.</span></div>
-        </div>
-        <p class="banda-generica" style="color: var(--muted); font-size: 12px;">Solo entran en la nómina de reconocimiento quienes cumplen las <strong>tres</strong> condiciones: estuvieron 🟢 en verde <strong>todo el período</strong> (sin ningún amarillo ni rojo), <strong>sin ninguna falta registrada</strong>, y con un puntaje de al menos <strong>30/40</strong>. Las primeras dos se calculan solas; el puntaje lo cargan ustedes. La ⭐ marca al puntaje más alto entre quienes cumplen, en cada gimnasio.</p>
+      <div class="rubrica-body open" id="bpRankings-body">
+        <p style="font-size:12px; color: var(--muted); margin: 0 0 10px;" id="bpRankingPeriodo"></p>
+        <p class="field-label">Quién recibió más estrellas</p>
+        <div id="rankingBpRecibidas"></div>
+        <p class="field-label" style="margin-top:16px;">Quién dio más estrellas</p>
+        <div id="rankingBpDadas"></div>
       </div>
     </div>
+
+    <div class="toolbar">
+      <input type="text" id="fReceptorBp" list="listaBpReceptoresFiltro" placeholder="Buscar por nombre de empleado...">
+      <datalist id="listaBpReceptoresFiltro"></datalist>
+      <input type="month" id="fMesBp" title="Filtrar por mes">
+      <input type="text" id="fBuscarBp" placeholder="Buscar en la nota...">
+    </div>
+    <div class="status" id="statusBp">Cargando...</div>
+    <div id="listaBp"></div>
+  </div>
+
+  <div class="tab-panel" id="panel-reconocimiento">
+    <p style="font-size:13px; color: var(--muted); margin: 0 0 12px;">Vista informativa para decidir el reconocimiento del cuatrimestre: para cada empleado se muestra su puntaje de Evaluación de desempeño, sus faltas y sus estrellas del período elegido. El orden es solo una ayuda de lectura — la decisión final es de coordinación.</p>
 
     <div class="toolbar">
       <select id="rAnio"></select>
@@ -476,25 +531,9 @@
         <option value="IM Studio">IM Studio</option>
         <option value="Impacto">Impacto</option>
       </select>
-      <button class="btn" id="btnNuevoRec">+ Cargar evaluación</button>
     </div>
 
-    <div class="ranking-wrap" style="grid-template-columns: 1fr;">
-      <div class="ranking-col">
-        <h3>🏆 Aplican al reconocimiento este cuatrimestre — por gimnasio</h3>
-        <div id="rankingGimnasio"></div>
-      </div>
-    </div>
-
-    <div class="ranking-wrap" style="grid-template-columns: 1fr;">
-      <div class="ranking-col">
-        <h3>🏅 Premio a la Excelencia — mejor promedio anual, por gimnasio</h3>
-        <div id="rankingAnual"></div>
-      </div>
-    </div>
-
-    <div class="status" id="statusRec">Cargando...</div>
-    <div class="grid" id="listaRec"></div>
+    <div id="listaRec"></div>
   </div>
 
   <div class="tab-panel" id="panel-faltas">
@@ -619,7 +658,7 @@
       </div>
 
       <div id="sidebarFaltasNotice" class="notice" style="display:none;">
-        Registro simple: elegí a qué aspecto corresponde, quién y cuándo. Si un empleado acumula varias faltas en el mismo mes, el semáforo se actualiza solo (2 faltas → 🟡 amarillo, 3 o más → 🔴 rojo).
+        Registro simple: elegí a qué aspecto corresponde, quién y cuándo.
       </div>
     </div>
   </div>
@@ -776,63 +815,6 @@
   </div>
 </div>
 
-<div class="overlay" id="overlayRec">
-  <div class="modal">
-    <h2 id="modalTitleRec">Nueva evaluación de reconocimiento</h2>
-    <form id="formRec">
-      <div class="form-grid">
-        <div class="form-row">
-          <label for="rEmpleado">Empleado</label>
-          <select id="rEmpleado" required>
-            <option value="">Seleccionar...</option>
-          </select>
-        </div>
-        <div class="form-row">
-          <label for="rAnioModal">Año</label>
-          <input type="number" id="rAnioModal" min="2020" max="2100" required>
-        </div>
-      </div>
-      <div class="form-row">
-        <label for="rTrimestreModal">Cuatrimestre</label>
-        <select id="rTrimestreModal" required>
-          <option value="C1">Enero – Abril</option>
-          <option value="C2">Mayo – Agosto</option>
-          <option value="C3">Septiembre – Diciembre</option>
-        </select>
-      </div>
-      <div class="form-grid">
-        <div class="form-row">
-          <label for="rHorario">🕒 Horario (1–10)</label>
-          <input type="number" id="rHorario" min="1" max="10" required>
-        </div>
-        <div class="form-row">
-          <label for="rEstandares">✅ Estándares (1–10)</label>
-          <input type="number" id="rEstandares" min="1" max="10" required>
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-row">
-          <label for="rCompromiso">🤝 Compromiso (1–10)</label>
-          <input type="number" id="rCompromiso" min="1" max="10" required>
-        </div>
-        <div class="form-row">
-          <label for="rClientes">👥 Clientes (1–10)</label>
-          <input type="number" id="rClientes" min="1" max="10" required>
-        </div>
-      </div>
-      <div class="form-row">
-        <label for="rNota">Nota (opcional)</label>
-        <textarea id="rNota" rows="2" placeholder="Algo puntual a tener en cuenta de esta evaluación"></textarea>
-      </div>
-      <div class="error-text" id="formErrorRec" style="display:none;"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn secondary" id="btnCancelarRec">Cancelar</button>
-        <button type="button" class="btn" id="btnGuardarRec">Guardar evaluación</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <div class="overlay" id="overlayEmp">
   <div class="modal">
     <h2 id="modalTitleEmp">Nuevo empleado</h2>
@@ -922,7 +904,7 @@
 
 <div class="overlay" id="overlayInf">
   <div class="modal">
-    <h2 id="modalTitleInf">Nueva reunión / evaluación</h2>
+    <h2 id="modalTitleInf">Nueva reunión</h2>
     <form id="formInf">
       <div class="form-row">
         <label for="iEmpleado">Empleado (no aplica para reuniones grupales)</label>
@@ -950,7 +932,6 @@
         <select id="iArea" required>
           <option value="">Seleccionar...</option>
           <option value="Individual">Individual</option>
-          <option value="Evaluación de desempeño">Evaluación de desempeño</option>
           <option value="Área técnica">Área técnica</option>
           <option value="Área de ventas">Área de ventas</option>
           <option value="De coordinación">De coordinación</option>
@@ -965,16 +946,6 @@
           <option value="amarillo">🟡 Amarillo — Riesgo medio</option>
           <option value="rojo">🔴 Rojo — Problema grave</option>
         </select>
-      </div>
-      <div class="section-label" style="color: var(--blue-600, #185FA5);">🤝 Seguimiento personal (independiente del color)</div>
-      <div class="form-row">
-        <label for="iSeguimiento">¿Esta persona necesita que le prestemos atención por algo personal, aunque su desempeño esté bien?</label>
-        <select id="iSeguimiento">
-          <option value="">No aplica</option>
-          <option value="activo">Sí, marcar seguimiento activo</option>
-          <option value="resuelto">Cerrar seguimiento anterior (ya se resolvió)</option>
-        </select>
-        <p style="font-size:12px; color: var(--muted); margin: 4px 0 0;">Esto NO afecta el color ni el Reconocimiento — es solo para que el equipo esté al tanto y le haga seguimiento humano.</p>
       </div>
       <div class="form-row">
         <label for="iParticipantes">Otros participantes</label>
@@ -996,6 +967,55 @@
       <div class="modal-actions">
         <button type="button" class="btn secondary" id="btnCancelarInf">Cancelar</button>
         <button type="button" class="btn" id="btnGuardarInf">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="overlay" id="overlayEval">
+  <div class="modal">
+    <h3 id="modalTitleEval">Nueva evaluación de desempeño</h3>
+    <form id="formEval">
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="evEmpleado">Empleado</label>
+          <select id="evEmpleado" required>
+            <option value="">Seleccionar...</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="evFecha">Fecha</label>
+          <input type="date" id="evFecha" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="evGimnasio">Gimnasio</label>
+        <select id="evGimnasio" required>
+          <option value="">Seleccionar...</option>
+          <option value="Active">Active</option>
+          <option value="IM Studio">IM Studio</option>
+          <option value="Impacto">Impacto</option>
+        </select>
+      </div>
+      <div class="section-label perf">Resultado de la evaluación</div>
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="evPuntajeObtenido">Puntaje obtenido</label>
+          <input type="number" id="evPuntajeObtenido" min="0" step="1" required>
+        </div>
+        <div class="form-row">
+          <label for="evPuntajeTotal">Puntaje total posible</label>
+          <input type="number" id="evPuntajeTotal" min="1" step="1" value="20" required>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <label for="evNotas">Notas / justificación</label>
+        <textarea id="evNotas" rows="4" placeholder="Detalle de la evaluación, contexto, aspectos a mejorar..."></textarea>
+      </div>
+      <div class="error-text" id="formErrorEval" style="display:none;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" id="btnCancelarEval">Cancelar</button>
+        <button type="button" class="btn" id="btnGuardarEval">Guardar</button>
       </div>
     </form>
   </div>
@@ -1087,9 +1107,11 @@ let reconocimientos = [];
 let faltas = [];
 let vacaciones = [];
 let licencias = [];
+let buenasPracticas = [];
+let ultimaVistaBp = 0;
+let idsConocidosBp = new Set();
 let editingEmpId = null;
 let editingInfId = null;
-let editingRecId = null;
 let editingFalId = null;
 let editingVacId = null;
 let editingLicId = null;
@@ -1101,6 +1123,8 @@ const K_REC = 'reconocimiento-data';
 const K_FAL = 'faltas-data';
 const K_VAC = 'vacaciones-data';
 const K_LIC = 'licencias-data';
+const K_BP = 'buenas-practicas-data';
+const K_BP_VISTA = 'buenas-practicas-ultima-vista';
 const trimLabels = { C1: 'Ene–Abr', C2: 'May–Ago', C3: 'Sep–Dic' };
 const semLabels = { verde: '🟢 Verde — Cumple', amarillo: '🟡 Amarillo — Riesgo medio', rojo: '🔴 Rojo — Problema grave', 'sin-evaluar': 'Sin evaluar' };
 
@@ -1177,10 +1201,11 @@ function areaClass(area) {
   return map[area] || 'area-general';
 }
 
-// Historial de semáforo de un empleado, derivado de los informes que tienen una evaluación cargada.
+// Historial de semáforo de un empleado, derivado de las reuniones generales (NO incluye Evaluación de desempeño).
+// Este semáforo es informal / "estado de salud" y NO influye en el Reconocimiento.
 function historialDeEmpleado(empleadoId) {
   return informes
-    .filter(i => i.empleadoId === empleadoId && i.estado)
+    .filter(i => i.empleadoId === empleadoId && i.estado && i.area !== 'Evaluación de desempeño' && i.area !== 'Automático (sistema)')
     .map(i => ({ fecha: i.fecha, estado: i.estado, nota: i.resumen }))
     .sort((a,b) => a.fecha.localeCompare(b.fecha));
 }
@@ -1189,17 +1214,6 @@ function estadoActualEmpleado(empleadoId) {
   return hist.length ? hist[hist.length - 1].estado : 'sin-evaluar';
 }
 
-// Seguimiento personal: totalmente independiente del semáforo/reconocimiento.
-function historialSeguimiento(empleadoId) {
-  return informes
-    .filter(i => i.empleadoId === empleadoId && i.seguimiento)
-    .map(i => ({ fecha: i.fecha, seguimiento: i.seguimiento, nota: i.resumen }))
-    .sort((a,b) => a.fecha.localeCompare(b.fecha));
-}
-function tieneSeguimientoActivo(empleadoId) {
-  const hist = historialSeguimiento(empleadoId);
-  return hist.length > 0 && hist[hist.length - 1].seguimiento === 'activo';
-}
 function antiguedad(fechaIngreso) {
   if (!fechaIngreso) return '';
   const ingreso = new Date(fechaIngreso + 'T00:00:00');
@@ -1215,6 +1229,14 @@ function antiguedad(fechaIngreso) {
 }
 const DIAS_ALERTA = 45;
 const ONBOARDING_DESDE = '2026-09-01';
+
+// Evaluación de desempeño de un empleado dentro de un período (se carga una vez por cuatrimestre).
+// Se usa solo como INFORMACIÓN DE REFERENCIA en Reconocimiento — coordinación decide a mano quién aplica.
+function evaluacionDelPeriodo(empleadoId, fechaInicio, fechaFin) {
+  return informes
+    .filter(i => i.empleadoId === empleadoId && i.area === 'Evaluación de desempeño' && i.fecha >= fechaInicio && i.fecha <= fechaFin)
+    .sort((a,b) => b.fecha.localeCompare(a.fecha))[0] || null;
+}
 
 const ONBOARDING_TAREAS = [
   { id: 'uniforme', label: 'Uniforme entregado' },
@@ -1246,7 +1268,7 @@ function anosDesde(fechaIngreso) {
   return (hoy - ingreso) / (1000 * 60 * 60 * 24 * 365.25);
 }
 function diasSinReunion(empleadoId) {
-  const infs = informes.filter(i => i.empleadoId === empleadoId);
+  const infs = informes.filter(i => i.empleadoId === empleadoId && i.area !== 'Evaluación de desempeño');
   if (infs.length === 0) return null;
   const ultimaFecha = infs.map(i => i.fecha).sort().slice(-1)[0];
   const dias = Math.floor((new Date() - new Date(ultimaFecha + 'T00:00:00')) / 86400000);
@@ -1278,21 +1300,35 @@ async function cargarTodo() {
     const rLic = await window.storage.get(K_LIC, true);
     licencias = rLic ? JSON.parse(rLic.value) : [];
   } catch (e) { licencias = []; }
+  try {
+    const rBp = await window.storage.get(K_BP, true);
+    buenasPracticas = rBp ? JSON.parse(rBp.value) : [];
+  } catch (e) { buenasPracticas = []; }
+  try {
+    const rBpVista = await window.storage.get(K_BP_VISTA, true);
+    ultimaVistaBp = rBpVista ? JSON.parse(rBpVista.value) : 0;
+  } catch (e) { ultimaVistaBp = 0; }
+  idsConocidosBp = new Set(buenasPracticas.map(b => b.id));
   poblarSelectEmpleados();
-  poblarSelectEmpleadosRec();
   poblarSelectEmpleadosFal();
   poblarSelectEmpleadosVac();
   poblarSelectEmpleadosLic();
+  poblarSelectEmpleadosEval();
+  poblarSelectEmpleadosBp();
   poblarAnios();
   poblarAniosFal();
   renderDashboard();
   renderCumpleanios(); renderSeguimientoPrueba();
   renderEmpleados();
   renderInformes();
+  renderEvaluaciones();
   renderReconocimiento();
   renderFaltas();
   renderVacaciones();
   renderLicencias();
+  renderBuenasPracticas();
+  actualizarBadgeBp();
+  iniciarListenerBp();
 }
 
 async function guardarEmpleados() {
@@ -1319,6 +1355,53 @@ async function guardarLicencias() {
   try { await window.storage.set(K_LIC, JSON.stringify(licencias), true); return true; }
   catch (e) { customAlert('No se pudo guardar. Intenta de nuevo.'); return false; }
 }
+async function guardarBuenasPracticas() {
+  try { await window.storage.set(K_BP, JSON.stringify(buenasPracticas), true); return true; }
+  catch (e) { customAlert('No se pudo guardar. Intenta de nuevo.'); return false; }
+}
+
+/* ---------- BADGE Y NOTIFICACIONES DE BUENAS PRÁCTICAS ---------- */
+async function guardarUltimaVistaBp() {
+  ultimaVistaBp = Date.now();
+  try { await window.storage.set(K_BP_VISTA, JSON.stringify(ultimaVistaBp), true); } catch (e) {}
+  actualizarBadgeBp();
+}
+
+function actualizarBadgeBp() {
+  const nuevas = buenasPracticas.filter(b => (b.creadoEn || 0) > ultimaVistaBp).length;
+  const badge = document.getElementById('badgeBp');
+  if (nuevas > 0) { badge.textContent = nuevas; badge.style.display = 'inline-block'; }
+  else { badge.style.display = 'none'; }
+}
+
+// Marca como vista la pestaña cuando coordinación la abre (saca el contador y actualiza qué ya se sabe).
+function marcarBpComoVisto() {
+  guardarUltimaVistaBp();
+  idsConocidosBp = new Set(buenasPracticas.map(b => b.id));
+}
+
+// Escucha cambios en tiempo real en Firestore: si aparece una estrella nueva mientras la página está abierta,
+// actualiza el contador (badge) al instante, sin esperar a recargar la página.
+function iniciarListenerBp() {
+  try {
+    db.collection('storage').doc(K_BP).onSnapshot((doc) => {
+      if (!doc.exists) return;
+      let datos = [];
+      try { datos = JSON.parse(doc.data().value); } catch (e) { return; }
+      const nuevasEntradas = datos.filter(b => !idsConocidosBp.has(b.id));
+      if (nuevasEntradas.length > 0) {
+        buenasPracticas = datos;
+        nuevasEntradas.forEach(b => idsConocidosBp.add(b.id));
+        actualizarBadgeBp();
+        // Si la pestaña de Buenas prácticas está abierta en este momento, refrescamos la vista también.
+        if (document.getElementById('panel-buenaspracticas').classList.contains('active')) {
+          renderBuenasPracticas();
+        }
+        renderDashboard();
+      }
+    });
+  } catch (e) { /* si falla el listener, el resto de la app sigue funcionando igual */ }
+}
 
 function opcionesEmpleadosActivos(actual) {
   const activos = empleados.filter(e => (e.estadoLaboral || 'Activo') === 'Activo');
@@ -1336,13 +1419,6 @@ function poblarSelectEmpleados() {
   const sel = document.getElementById('iEmpleado');
   const actual = sel.value;
   sel.innerHTML = '<option value="">Sin vincular</option>' + opcionesEmpleadosActivos(actual);
-  sel.value = actual;
-}
-
-function poblarSelectEmpleadosRec() {
-  const sel = document.getElementById('rEmpleado');
-  const actual = sel.value;
-  sel.innerHTML = '<option value="">Seleccionar...</option>' + opcionesEmpleadosActivos(actual);
   sel.value = actual;
 }
 
@@ -1370,12 +1446,11 @@ function poblarSelectEmpleadosLic() {
 function poblarAnios() {
   const anioActual = new Date().getFullYear();
   const anios = new Set([anioActual]);
-  reconocimientos.forEach(r => anios.add(r.anio));
+  informes.filter(i => i.area === 'Evaluación de desempeño' && i.fecha).forEach(i => anios.add(parseInt(i.fecha.slice(0,4), 10)));
   const sel = document.getElementById('rAnio');
   const actual = sel.value || String(anioActual);
   sel.innerHTML = Array.from(anios).sort((a,b) => b - a).map(a => `<option value="${a}">${a}</option>`).join('');
   sel.value = actual;
-  document.getElementById('rAnioModal').value = anioActual;
 }
 
 function renderDashboard() {
@@ -1395,12 +1470,8 @@ function renderDashboard() {
   const deVacacionesHoy = vacaciones.filter(v => v.estado === 'Aprobado' && v.fechaInicio <= hoyStr && v.fechaFin >= hoyStr).length;
   const vacacionesPendientes = vacaciones.filter(v => v.estado === 'Pendiente').length;
   const faltasDelMes = faltas.filter(f => f.fecha && f.fecha.startsWith(mesActual)).length;
-  const conSeguimientoPersonal = empleados.filter(e => tieneSeguimientoActivo(e.id)).length;
 
-  const hoy = new Date();
-  const trimestreActual = 'C' + (Math.floor(hoy.getMonth()/4) + 1);
-  const [inicioTActual, finTActual] = rangoTrimestre(hoy.getFullYear(), trimestreActual);
-  const aplicanReconocimiento = empleados.filter(e => cumpleRequisitosReconocimiento(e, inicioTActual, finTActual)).length;
+  const estrellasDelMes = buenasPracticas.filter(b => b.fecha && b.fecha.startsWith(mesActual)).length;
 
   const antiguedades = empleados.filter(e => e.fechaIngreso).map(e => anosDesde(e.fechaIngreso));
   const antiguedadPromedio = antiguedades.length ? (antiguedades.reduce((a,b) => a+b, 0) / antiguedades.length) : null;
@@ -1420,11 +1491,10 @@ function renderDashboard() {
     <div class="metric m-rojo${claseActivo('sinReunion')}" onclick="mostrarDetalleDashboard('sinReunion')"><div class="mlabel">Sin reunión +${DIAS_ALERTA} días</div><div class="mvalue">${sinReunionReciente}</div></div>
     <div class="metric m-rojo${claseActivo('faltasMes')}" onclick="mostrarDetalleDashboard('faltasMes')"><div class="mlabel">Faltas este mes</div><div class="mvalue">${faltasDelMes}</div></div>
     <div class="metric m-amarillo${claseActivo('licenciaHoy')}" onclick="mostrarDetalleDashboard('licenciaHoy')"><div class="mlabel">Con licencia hoy</div><div class="mvalue">${conLicenciaHoy}</div></div>
-    <div class="metric${claseActivo('seguimientoPersonal')}" onclick="mostrarDetalleDashboard('seguimientoPersonal')" style="color:#185FA5;"><div class="mlabel">🤝 Seguimiento personal</div><div class="mvalue">${conSeguimientoPersonal}</div></div>
   `;
 
   document.getElementById('dashboardTerciario').innerHTML = `
-    <div class="metric m-verde${claseActivo('aplicanRec')}" onclick="mostrarDetalleDashboard('aplicanRec')"><div class="mlabel">Aplican a reconoc. (cuatr. actual)</div><div class="mvalue">${aplicanReconocimiento}</div></div>
+    <div class="metric m-verde${claseActivo('estrellasMes')}" onclick="mostrarDetalleDashboard('estrellasMes')"><div class="mlabel">⭐ Estrellas este mes</div><div class="mvalue">${estrellasDelMes}</div></div>
     <div class="metric${claseActivo('antiguedadProm')}" onclick="mostrarDetalleDashboard('antiguedadProm')"><div class="mlabel">Antigüedad promedio</div><div class="mvalue">${antiguedadPromedio !== null ? antiguedadPromedio.toFixed(1) + 'a' : '—'}</div></div>
     <div class="metric m-amarillo${claseActivo('vacacionesHoy')}" onclick="mostrarDetalleDashboard('vacacionesHoy')"><div class="mlabel">De vacaciones hoy</div><div class="mvalue">${deVacacionesHoy}</div></div>
     <div class="metric${claseActivo('vacacionesPendientes')}" onclick="mostrarDetalleDashboard('vacacionesPendientes')"><div class="mlabel">Vacaciones a aprobar</div><div class="mvalue">${vacacionesPendientes}</div></div>
@@ -1481,13 +1551,6 @@ function renderDetalleDashboard() {
       const emp = empleados.find(e => e.id === l.empleadoId);
       return `<li>${escapeHtml(emp ? emp.nombre : 'Empleado eliminado')} <span class="demp">— ${escapeHtml(l.tipo)}</span></li>`;
     });
-  } else if (dashboardDetalleActivo === 'seguimientoPersonal') {
-    titulo = '🤝 Con seguimiento personal activo';
-    items = empleados.filter(e => tieneSeguimientoActivo(e.id)).map(e => {
-      const hist = historialSeguimiento(e.id);
-      const ultimo = hist[hist.length - 1];
-      return `<li>${escapeHtml(e.nombre)} <span class="demp">— desde ${fmtFecha(ultimo.fecha)}${ultimo.nota ? ': ' + escapeHtml(ultimo.nota.slice(0,60)) + (ultimo.nota.length > 60 ? '…' : '') : ''}</span></li>`;
-    });
   } else if (dashboardDetalleActivo === 'vacacionesHoy') {
     titulo = 'De vacaciones hoy';
     const hoyStr = new Date().toISOString().slice(0,10);
@@ -1509,14 +1572,15 @@ function renderDetalleDashboard() {
         const emp = empleados.find(e => e.id === f.empleadoId);
         return `<li>${fmtFecha(f.fecha)} — ${escapeHtml(emp ? emp.nombre : 'Empleado eliminado')} <span class="demp">— ${escapeHtml(f.aspecto)}</span></li>`;
       });
-  } else if (dashboardDetalleActivo === 'aplicanRec') {
-    titulo = 'Aplican al reconocimiento este cuatrimestre';
-    const hoy = new Date();
-    const trimestreActual = 'C' + (Math.floor(hoy.getMonth()/4) + 1);
-    const [inicioT, finT] = rangoTrimestre(hoy.getFullYear(), trimestreActual);
-    items = empleados.filter(e => cumpleRequisitosReconocimiento(e, inicioT, finT))
-      .sort((a,b) => a.nombre.localeCompare(b.nombre))
-      .map(e => `<li>${escapeHtml(e.nombre)} <span class="demp">— ${escapeHtml(e.gimnasio)}</span></li>`);
+  } else if (dashboardDetalleActivo === 'estrellasMes') {
+    titulo = 'Estrellas otorgadas este mes';
+    const mesActual = new Date().toISOString().slice(0,7);
+    items = buenasPracticas.filter(b => b.fecha && b.fecha.startsWith(mesActual))
+      .sort((a,b) => b.fecha.localeCompare(a.fecha))
+      .map(b => {
+        const receptor = empleados.find(e => e.id === b.receptorId);
+        return `<li>${fmtFecha(b.fecha)} — ${escapeHtml(receptor ? receptor.nombre : 'Empleado eliminado')} <span class="demp">— de ${escapeHtml(b.dadaPor)}</span></li>`;
+      });
   } else if (dashboardDetalleActivo === 'antiguedadProm') {
     titulo = 'Antigüedad de cada empleado';
     items = empleados.filter(e => e.fechaIngreso)
@@ -1540,6 +1604,8 @@ function renderDetalleDashboard() {
 function actualizarSidebarPorTab(tab) {
   document.getElementById('sidebarLeyenda').style.display = tab === 'informes' ? 'block' : 'none';
   document.getElementById('sidebarFaltasNotice').style.display = tab === 'faltas' ? 'block' : 'none';
+  document.getElementById('dashboardRow').style.display = tab === 'empleados' ? 'flex' : 'none';
+  document.getElementById('dashboardDetalle').style.display = tab === 'empleados' ? 'block' : 'none';
 }
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -1548,6 +1614,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
     actualizarSidebarPorTab(btn.dataset.tab);
+    if (btn.dataset.tab === 'buenaspracticas') marcarBpComoVisto();
   });
 });
 actualizarSidebarPorTab('empleados');
@@ -1621,7 +1688,6 @@ function renderEmpleados() {
     } else if (dias > DIAS_ALERTA) {
       alertaHtml = `<span class="alert-badge">Hace ${dias} días sin reunión</span>`;
     }
-    const seguimientoHtml = tieneSeguimientoActivo(e.id) ? '<span class="seguimiento-badge">🤝 Seguimiento personal</span>' : '';
 
     return `
     <div class="card" style="${desvinculado ? 'opacity:0.7;' : ''}">
@@ -1629,29 +1695,30 @@ function renderEmpleados() {
         <div>
           <span class="tag ${claseGimnasio(e.gimnasio)}">${escapeHtml(e.gimnasio)}</span>
           <span class="semaforo-badge ${estado}"><span class="dot ${estado}"></span>${semLabels[estado]}</span>
-          ${seguimientoHtml}
           ${desvinculado ? `<span class="alert-badge">Desvinculado ${e.fechaDesvinculacion ? '(' + fmtFecha(e.fechaDesvinculacion) + ')' : ''}</span>` : ''}
           ${alertaHtml}
-          <p class="name">${escapeHtml(e.nombre)}${enPeriodoPrueba ? ' <span style="font-weight:400; font-size:13px; color:var(--muted);">(Período de prueba)</span>' : ''}</p>
+          <p class="name toggle-link" onclick="toggleBloque('detalle-emp-${e.id}')">${escapeHtml(e.nombre)}${enPeriodoPrueba ? ' <span style="font-weight:400; font-size:13px; color:var(--muted);">(Período de prueba)</span>' : ''} <span style="font-size:12px;">▾</span></p>
           <p class="role">${escapeHtml(e.area || 'Sin área asignada')}</p>
         </div>
       </div>
-      <div class="rows">
-        <div class="row"><span class="k">DNI</span><span class="v">${escapeHtml(e.dni)}</span></div>
-        <div class="row"><span class="k">CUIL</span><span class="v">${escapeHtml(e.cuil || '—')}</span></div>
-        <div class="row"><span class="k">Nacimiento</span><span class="v">${e.fechaNacimiento ? fmtFecha(e.fechaNacimiento) : '—'}</span></div>
-        <div class="row"><span class="k">Dirección</span><span class="v">${escapeHtml(e.direccion || '—')}</span></div>
-        <div class="row"><span class="k">Ingresó</span><span class="v">${e.fechaIngreso ? fmtFecha(e.fechaIngreso) + ' ' + antiguedad(e.fechaIngreso) : '—'}</span></div>
-        <div class="row"><span class="k">Teléfono</span><span class="v">${escapeHtml(e.telefono || '—')}</span></div>
-        <div class="row"><span class="k">Contacto alt.</span><span class="v">${escapeHtml(e.contacto || '—')}</span></div>
-        <div class="row"><span class="k">Emergencia</span><span class="v">${e.emergNombre || e.emergTelefono ? escapeHtml((e.emergNombre || 'Sin nombre') + ' · ' + (e.emergTelefono || 'Sin teléfono')) : '—'}</span></div>
-        <div class="row"><span class="k">Responsable</span><span class="v">${escapeHtml(e.responsable || '—')}</span></div>
-      </div>
-      ${onboardingHtml}
-      <div class="card-actions">
-        <button class="btn secondary small" onclick="editarEmpleado('${e.id}')">Editar</button>
-        <button class="btn secondary small" onclick="toggleDesvinculado('${e.id}')">${desvinculado ? 'Reactivar' : 'Marcar como desvinculado'}</button>
-        <button class="btn danger small" onclick="eliminarEmpleado('${e.id}')">Eliminar</button>
+      <div id="detalle-emp-${e.id}" style="display:none;">
+        <div class="rows">
+          <div class="row"><span class="k">DNI</span><span class="v">${escapeHtml(e.dni)}</span></div>
+          <div class="row"><span class="k">CUIL</span><span class="v">${escapeHtml(e.cuil || '—')}</span></div>
+          <div class="row"><span class="k">Nacimiento</span><span class="v">${e.fechaNacimiento ? fmtFecha(e.fechaNacimiento) : '—'}</span></div>
+          <div class="row"><span class="k">Dirección</span><span class="v">${escapeHtml(e.direccion || '—')}</span></div>
+          <div class="row"><span class="k">Ingresó</span><span class="v">${e.fechaIngreso ? fmtFecha(e.fechaIngreso) + ' ' + antiguedad(e.fechaIngreso) : '—'}</span></div>
+          <div class="row"><span class="k">Teléfono</span><span class="v">${escapeHtml(e.telefono || '—')}</span></div>
+          <div class="row"><span class="k">Contacto alt.</span><span class="v">${escapeHtml(e.contacto || '—')}</span></div>
+          <div class="row"><span class="k">Emergencia</span><span class="v">${e.emergNombre || e.emergTelefono ? escapeHtml((e.emergNombre || 'Sin nombre') + ' · ' + (e.emergTelefono || 'Sin teléfono')) : '—'}</span></div>
+          <div class="row"><span class="k">Responsable</span><span class="v">${escapeHtml(e.responsable || '—')}</span></div>
+        </div>
+        ${onboardingHtml}
+        <div class="card-actions">
+          <button class="btn secondary small" onclick="editarEmpleado('${e.id}')">Editar</button>
+          <button class="btn secondary small" onclick="toggleDesvinculado('${e.id}')">${desvinculado ? 'Reactivar' : 'Marcar como desvinculado'}</button>
+          <button class="btn danger small" onclick="eliminarEmpleado('${e.id}')">Eliminar</button>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -1695,7 +1762,7 @@ async function eliminarEmpleado(id) {
   if (!(await customConfirm('¿Eliminar DEFINITIVAMENTE a este empleado de la base? Esta acción no se puede deshacer. Si la persona se desvinculó, es mejor usar "Marcar como desvinculado" para conservar su historial.'))) return;
   empleados = empleados.filter(x => x.id !== id);
   const ok = await guardarEmpleados();
-  if (ok) { poblarSelectEmpleados(); renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados(); renderInformes(); }
+  if (ok) { poblarSelectEmpleados(); renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados(); renderInformes(); renderEvaluaciones(); }
 }
 async function toggleDesvinculado(id) {
   const idx = empleados.findIndex(x => x.id === id);
@@ -1712,7 +1779,7 @@ async function toggleDesvinculado(id) {
     fechaDesvinculacion: yaDesvinculado ? '' : new Date().toISOString().slice(0,10)
   };
   const ok = await guardarEmpleados();
-  if (ok) { poblarSelectEmpleados(); poblarSelectEmpleadosRec(); poblarSelectEmpleadosFal(); poblarSelectEmpleadosVac(); poblarSelectEmpleadosLic(); renderDashboard(); renderEmpleados(); }
+  if (ok) { poblarSelectEmpleados(); poblarSelectEmpleadosFal(); poblarSelectEmpleadosVac(); poblarSelectEmpleadosLic(); renderDashboard(); renderEmpleados(); }
 }
 
 document.getElementById('btnNuevoEmp').addEventListener('click', () => abrirModalEmp(null));
@@ -1757,7 +1824,7 @@ document.getElementById('btnGuardarEmp').addEventListener('click', async (ev) =>
   else { empleados.push(data); }
 
   const ok = await guardarEmpleados();
-  if (ok) { cerrarModalEmp(); poblarSelectEmpleados(); renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados(); renderInformes(); }
+  if (ok) { cerrarModalEmp(); poblarSelectEmpleados(); renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados(); renderInformes(); renderEvaluaciones(); }
 });
 
 document.getElementById('fGimnasio').addEventListener('change', renderEmpleados);
@@ -1774,6 +1841,7 @@ function renderInformes() {
   const buscar = document.getElementById('fBuscarInf').value.toLowerCase().trim();
 
   let filtrados = informes.filter(inf => {
+    if (inf.area === 'Evaluación de desempeño' || inf.area === 'Automático (sistema)') return false;
     if (gim && inf.gimnasio !== gim) return false;
     if (area && inf.area !== area) return false;
     if (estadoFiltro && inf.estado !== estadoFiltro) return false;
@@ -1790,7 +1858,7 @@ function renderInformes() {
   document.getElementById('statusInf').textContent = filtrados.length + ' de ' + informes.length + ' registro(s)';
   const lista = document.getElementById('listaInf');
   if (filtrados.length === 0) {
-    lista.innerHTML = '<div class="empty">No hay reuniones ni evaluaciones que coincidan.<br>Cargá la primera con "+ Nueva reunión / evaluación".</div>';
+    lista.innerHTML = '<div class="empty">No hay reuniones que coincidan.<br>Cargá la primera con "+ Nueva reunión".</div>';
     return;
   }
 
@@ -1813,19 +1881,21 @@ function renderInformes() {
               ${empleadoHtml}
               ${estadoHtml}
             </div>
-            <p class="name">${fmtFecha(inf.fecha)}</p>
+            <p class="name toggle-link" onclick="toggleBloque('detalle-inf-${inf.id}')">${fmtFecha(inf.fecha)} <span style="font-size:12px;">▾</span></p>
             <p class="role">${escapeHtml(inf.participantes || 'Sin otros participantes')}</p>
+          </div>
+        </div>
+        <div id="detalle-inf-${inf.id}" style="display:none;">
+          <div class="card-body">
+            <div class="field-label">Resumen</div>
+            <p>${escapeHtml(inf.resumen)}</p>
+            ${pendientesHtml}
+            ${linkHtml}
           </div>
           <div class="card-actions">
             <button class="btn secondary small" onclick="editarInforme('${inf.id}')">Editar</button>
             <button class="btn danger small" onclick="eliminarInforme('${inf.id}')">Eliminar</button>
           </div>
-        </div>
-        <div class="card-body">
-          <div class="field-label">Resumen</div>
-          <p>${escapeHtml(inf.resumen)}</p>
-          ${pendientesHtml}
-          ${linkHtml}
         </div>
       </div>`;
   }).join('');
@@ -1844,7 +1914,7 @@ function onEmpleadoInfChangeManual() {
 function abrirModalInf(inf) {
   editingInfId = inf ? inf.id : null;
   poblarSelectEmpleados();
-  document.getElementById('modalTitleInf').textContent = inf ? 'Editar' : 'Nueva reunión / evaluación';
+  document.getElementById('modalTitleInf').textContent = inf ? 'Editar' : 'Nueva reunión';
   document.getElementById('iFecha').value = inf ? inf.fecha : new Date().toISOString().slice(0,10);
   document.getElementById('iGimnasio').value = inf ? inf.gimnasio : '';
   document.getElementById('iArea').value = inf ? inf.area : '';
@@ -1853,7 +1923,6 @@ function abrirModalInf(inf) {
   document.getElementById('iResumen').value = inf ? inf.resumen : '';
   document.getElementById('iPendientes').value = inf ? inf.pendientes : '';
   document.getElementById('iEstado').value = inf ? (inf.estado || '') : '';
-  document.getElementById('iSeguimiento').value = inf ? (inf.seguimiento || '') : '';
   document.getElementById('iLink').value = inf ? (inf.link || '') : '';
   document.getElementById('formErrorInf').style.display = 'none';
   document.getElementById('overlayInf').classList.add('open');
@@ -1889,8 +1958,7 @@ document.getElementById('btnGuardarInf').addEventListener('click', async (ev) =>
   const resumen = document.getElementById('iResumen').value.trim();
   const empleadoId = document.getElementById('iEmpleado').value || null;
   const estado = document.getElementById('iEstado').value || null;
-  const seguimiento = document.getElementById('iSeguimiento').value || null;
-  const requiereEmpleado = area === 'Individual' || area === 'Evaluación de desempeño';
+  const requiereEmpleado = area === 'Individual';
   const errEl = document.getElementById('formErrorInf');
   if (!fecha || !gimnasio || !area || !resumen) {
     errEl.textContent = 'Completa fecha, gimnasio, tipo y resumen antes de guardar.';
@@ -1899,11 +1967,6 @@ document.getElementById('btnGuardarInf').addEventListener('click', async (ev) =>
   }
   if (requiereEmpleado && !empleadoId) {
     errEl.textContent = 'Este tipo de reunión necesita un empleado vinculado.';
-    errEl.style.display = 'block';
-    return;
-  }
-  if (seguimiento && !empleadoId) {
-    errEl.textContent = 'El seguimiento personal necesita un empleado vinculado — elegí a quién corresponde.';
     errEl.style.display = 'block';
     return;
   }
@@ -1917,7 +1980,7 @@ document.getElementById('btnGuardarInf').addEventListener('click', async (ev) =>
     resumen,
     pendientes: document.getElementById('iPendientes').value.trim(),
     link: document.getElementById('iLink').value.trim(),
-    estado, seguimiento
+    estado
   };
 
   if (editingInfId) { informes = informes.map(i => i.id === editingInfId ? data : i); }
@@ -1934,11 +1997,272 @@ document.getElementById('fEstadoInf').addEventListener('change', renderInformes)
 document.getElementById('fMesInf').addEventListener('change', renderInformes);
 document.getElementById('fBuscarInf').addEventListener('input', renderInformes);
 
-/* ---------- RECONOCIMIENTO ---------- */
-function totalRec(r) {
-  return r.horario + r.estandares + r.compromiso + r.clientes;
+/* ---------- EVALUACIONES DE DESEMPEÑO ---------- */
+function poblarSelectEmpleadosEval() {
+  const sel = document.getElementById('evEmpleado');
+  const actual = sel.value;
+  sel.innerHTML = '<option value="">Seleccionar...</option>' + opcionesEmpleadosActivos(actual);
 }
 
+// Puntaje de una evaluación de desempeño ya guardada: { obtenido, total }.
+function puntajeEvaluacion(inf) {
+  return { obtenido: inf.puntajeObtenido || 0, total: inf.puntajeTotal || 0 };
+}
+
+function onEmpleadoEvalChangeManual() {
+  const empleadoId = document.getElementById('evEmpleado').value;
+  if (empleadoId) {
+    const emp = empleados.find(e => e.id === empleadoId);
+    if (emp) document.getElementById('evGimnasio').value = emp.gimnasio;
+  }
+}
+
+let editingEvalId = null;
+
+function abrirModalEval(inf) {
+  editingEvalId = inf ? inf.id : null;
+  poblarSelectEmpleadosEval();
+  document.getElementById('modalTitleEval').textContent = inf ? 'Editar evaluación de desempeño' : 'Nueva evaluación de desempeño';
+  document.getElementById('evFecha').value = inf ? inf.fecha : new Date().toISOString().slice(0,10);
+  document.getElementById('evGimnasio').value = inf ? inf.gimnasio : '';
+  document.getElementById('evEmpleado').value = inf ? (inf.empleadoId || '') : '';
+  document.getElementById('evNotas').value = inf ? (inf.resumen || '') : '';
+  document.getElementById('evPuntajeObtenido').value = inf ? inf.puntajeObtenido : '';
+  document.getElementById('evPuntajeTotal').value = inf ? inf.puntajeTotal : 20;
+  document.getElementById('formErrorEval').style.display = 'none';
+  document.getElementById('overlayEval').classList.add('open');
+}
+function cerrarModalEval() {
+  document.getElementById('overlayEval').classList.remove('open');
+  document.getElementById('formEval').reset();
+  editingEvalId = null;
+}
+function editarEvaluacion(id) {
+  const inf = informes.find(i => i.id === id);
+  if (inf) abrirModalEval(inf);
+}
+async function eliminarEvaluacion(id) {
+  if (!(await customConfirm('¿Eliminar esta evaluación de desempeño? Esta acción no se puede deshacer.'))) return;
+  informes = informes.filter(i => i.id !== id);
+  const ok = await guardarInformes();
+  if (ok) renderEvaluaciones();
+  renderDashboard(); renderReconocimiento(); renderEmpleados();
+}
+
+document.getElementById('btnNuevoEval').addEventListener('click', () => abrirModalEval(null));
+document.getElementById('btnCancelarEval').addEventListener('click', cerrarModalEval);
+document.getElementById('overlayEval').addEventListener('click', (ev) => { if (ev.target.id === 'overlayEval') cerrarModalEval(); });
+document.getElementById('evEmpleado').addEventListener('change', onEmpleadoEvalChangeManual);
+
+document.getElementById('btnGuardarEval').addEventListener('click', async (ev) => {
+  ev.preventDefault();
+  const fecha = document.getElementById('evFecha').value;
+  const gimnasio = document.getElementById('evGimnasio').value;
+  const empleadoId = document.getElementById('evEmpleado').value;
+  const puntajeObtenido = parseInt(document.getElementById('evPuntajeObtenido').value, 10);
+  const puntajeTotal = parseInt(document.getElementById('evPuntajeTotal').value, 10);
+  const errEl = document.getElementById('formErrorEval');
+  if (!fecha || !gimnasio || !empleadoId) {
+    errEl.textContent = 'Completá empleado, gimnasio y fecha antes de guardar.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!Number.isInteger(puntajeObtenido) || !Number.isInteger(puntajeTotal) || puntajeTotal < 1 || puntajeObtenido < 0 || puntajeObtenido > puntajeTotal) {
+    errEl.textContent = 'Completá un puntaje obtenido válido, que no supere el puntaje total.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const data = {
+    id: editingEvalId || (Date.now().toString(36) + Math.random().toString(36).slice(2,7)),
+    fecha, gimnasio, area: 'Evaluación de desempeño',
+    empleadoId,
+    participantes: '',
+    resumen: document.getElementById('evNotas').value.trim(),
+    pendientes: '',
+    link: '',
+    puntajeObtenido, puntajeTotal
+  };
+
+  if (editingEvalId) { informes = informes.map(i => i.id === editingEvalId ? data : i); }
+  else { informes.push(data); }
+
+  const ok = await guardarInformes();
+  if (ok) { cerrarModalEval(); renderEvaluaciones(); renderDashboard(); renderEmpleados(); renderReconocimiento(); }
+});
+
+function renderEvaluaciones() {
+  const gim = document.getElementById('fGimnasioEval').value;
+  const mes = document.getElementById('fMesEval').value;
+  const buscar = document.getElementById('fBuscarEval').value.toLowerCase().trim();
+
+  let filtrados = informes.filter(inf => {
+    if (inf.area !== 'Evaluación de desempeño') return false;
+    if (gim && inf.gimnasio !== gim) return false;
+    if (mes && (!inf.fecha || !inf.fecha.startsWith(mes))) return false;
+    if (buscar) {
+      const empleadoNombre = (empleados.find(e => e.id === inf.empleadoId) || {}).nombre || '';
+      const blob = (empleadoNombre + ' ' + (inf.resumen || '')).toLowerCase();
+      if (!blob.includes(buscar)) return false;
+    }
+    return true;
+  });
+  filtrados.sort((a,b) => b.fecha.localeCompare(a.fecha));
+
+  const totalEval = informes.filter(i => i.area === 'Evaluación de desempeño').length;
+  document.getElementById('statusEval').textContent = filtrados.length + ' de ' + totalEval + ' evaluación(es)';
+  const lista = document.getElementById('listaEval');
+  if (filtrados.length === 0) {
+    lista.innerHTML = '<div class="empty">No hay evaluaciones de desempeño que coincidan.<br>Cargá la primera con "+ Nueva evaluación de desempeño".</div>';
+    return;
+  }
+
+  lista.innerHTML = filtrados.map(inf => {
+    const empleado = empleados.find(e => e.id === inf.empleadoId);
+    const empleadoHtml = empleado ? `<span class="tag">${escapeHtml(empleado.nombre)}</span>` : '<span class="tag">Empleado eliminado</span>';
+    const puntajeHtml = inf.puntajeTotal
+      ? `<span class="tag">Puntaje: ${inf.puntajeObtenido} de ${inf.puntajeTotal}</span>`
+      : `<span class="tag">Sin puntaje cargado</span>`;
+    return `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div>
+              <span class="tag ${claseGimnasio(inf.gimnasio)}">${escapeHtml(inf.gimnasio)}</span>
+              ${empleadoHtml}
+              ${puntajeHtml}
+            </div>
+            <p class="name">${fmtFecha(inf.fecha)}</p>
+          </div>
+          <div class="card-actions">
+            <button class="btn secondary small" onclick="editarEvaluacion('${inf.id}')">Editar</button>
+            <button class="btn danger small" onclick="eliminarEvaluacion('${inf.id}')">Eliminar</button>
+          </div>
+        </div>
+        <div class="card-body">
+          ${inf.resumen ? '<div class="field-label">Notas</div><p>' + escapeHtml(inf.resumen) + '</p>' : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('fGimnasioEval').addEventListener('change', renderEvaluaciones);
+document.getElementById('fMesEval').addEventListener('change', renderEvaluaciones);
+document.getElementById('fBuscarEval').addEventListener('input', renderEvaluaciones);
+
+/* ---------- BUENAS PRÁCTICAS (ESTRELLAS) — de solo lectura en este sistema ---------- */
+function poblarSelectEmpleadosBp() {
+  const activos = empleados.filter(e => (e.estadoLaboral || 'Activo') === 'Activo');
+  document.getElementById('listaBpReceptoresFiltro').innerHTML = activos.map(e => `<option value="${escapeHtml(e.nombre)}">`).join('');
+}
+
+function nombreDador(bp) {
+  if (bp.dadaPorId === 'coordinacion') return 'Coordinación';
+  const emp = empleados.find(e => e.id === bp.dadaPorId);
+  return emp ? emp.nombre : 'Empleado eliminado';
+}
+
+function renderBuenasPracticas() {
+  renderRankingsBp();
+  const receptorFiltroTexto = document.getElementById('fReceptorBp').value.trim().toLowerCase();
+  const mes = document.getElementById('fMesBp').value;
+  const buscar = document.getElementById('fBuscarBp').value.toLowerCase().trim();
+
+  let filtradas = buenasPracticas.filter(bp => {
+    if (receptorFiltroTexto) {
+      const receptor = empleados.find(e => e.id === bp.receptorId);
+      const nombreReceptor = receptor ? receptor.nombre.toLowerCase() : '';
+      if (!nombreReceptor.includes(receptorFiltroTexto)) return false;
+    }
+    if (mes && (!bp.fecha || !bp.fecha.startsWith(mes))) return false;
+    if (buscar && !(bp.nota || '').toLowerCase().includes(buscar)) return false;
+    return true;
+  });
+  filtradas.sort((a,b) => b.fecha.localeCompare(a.fecha));
+
+  document.getElementById('statusBp').textContent = filtradas.length + ' de ' + buenasPracticas.length + ' estrella(s)';
+  const lista = document.getElementById('listaBp');
+  if (filtradas.length === 0) {
+    lista.innerHTML = '<div class="empty">No hay estrellas que coincidan.</div>';
+    return;
+  }
+
+  lista.innerHTML = filtradas.map(bp => {
+    const receptor = empleados.find(e => e.id === bp.receptorId);
+    const receptorHtml = receptor ? `<span class="tag">${escapeHtml(receptor.nombre)}</span>` : '<span class="tag">Empleado eliminado</span>';
+    return `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <div>
+              ⭐ ${receptorHtml}
+              <span class="tag">de: ${escapeHtml(nombreDador(bp))}</span>
+            </div>
+            <p class="name">${fmtFecha(bp.fecha)}</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <p>${escapeHtml(bp.nota)}</p>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+document.getElementById('fReceptorBp').addEventListener('input', renderBuenasPracticas);
+document.getElementById('fMesBp').addEventListener('change', renderBuenasPracticas);
+document.getElementById('fBuscarBp').addEventListener('input', renderBuenasPracticas);
+
+function cuatrimestreActualCodigo() {
+  const hoy = new Date();
+  const trimestre = 'C' + (Math.floor(hoy.getMonth()/4) + 1);
+  return { anio: hoy.getFullYear(), trimestre };
+}
+
+function nombrePorIdBp(id) {
+  if (id === 'coordinacion') return 'Coordinación';
+  const emp = empleados.find(e => e.id === id);
+  return emp ? emp.nombre : 'Empleado eliminado';
+}
+
+function calcularRankingBp(campo) {
+  const { anio, trimestre } = cuatrimestreActualCodigo();
+  const [inicio, fin] = rangoTrimestre(anio, trimestre);
+  const conteo = {};
+  buenasPracticas
+    .filter(b => b.fecha && b.fecha >= inicio && b.fecha <= fin)
+    .forEach(b => {
+      const id = b[campo];
+      conteo[id] = (conteo[id] || 0) + 1;
+    });
+  return Object.entries(conteo)
+    .map(([id, cantidad]) => ({ nombre: nombrePorIdBp(id), cantidad }))
+    .sort((a,b) => b.cantidad - a.cantidad);
+}
+
+function renderRankingBpEnContenedor(contenedorId, campo) {
+  const ranking = calcularRankingBp(campo).slice(0, 5);
+  const el = document.getElementById(contenedorId);
+  if (ranking.length === 0) {
+    el.innerHTML = '<div class="podio-item"><span style="color: var(--muted);">Todavía no hay estrellas este cuatrimestre.</span></div>';
+    return;
+  }
+  const medallas = ['🥇','🥈','🥉'];
+  el.innerHTML = ranking.map((r, i) => `
+    <div class="podio-item">
+      <div>${medallas[i] || ''} ${escapeHtml(r.nombre)}</div>
+      <div class="pscore">${r.cantidad}</div>
+    </div>`).join('');
+}
+
+function renderRankingsBp() {
+  const { anio, trimestre } = cuatrimestreActualCodigo();
+  document.getElementById('bpRankingPeriodo').textContent = `${trimLabels[trimestre]} ${anio}`;
+  renderRankingBpEnContenedor('rankingBpRecibidas', 'receptorId');
+  renderRankingBpEnContenedor('rankingBpDadas', 'dadaPorId');
+}
+
+/* ---------- RECONOCIMIENTO (vista informativa) ---------- */
 function rangoTrimestre(anio, trimestre) {
   const rangos = { C1: ['01','04','30'], C2: ['05','08','31'], C3: ['09','12','31'] };
   const [mIni, mFin, diaFin] = rangos[trimestre];
@@ -1948,72 +2272,14 @@ function rangoAnio(anio) {
   return [`${anio}-01-01`, `${anio}-12-31`];
 }
 
-// Devuelve true solo si el empleado estuvo en verde todo el rango de fechas, sin ninguna interrupción.
-function siempreVerdeEnPeriodo(emp, fechaInicio, fechaFin) {
-  const hist = historialDeEmpleado(emp.id); // ya viene ordenado por fecha
-  if (hist.length === 0) return false; // sin evaluaciones cargadas en informes, no se puede confirmar
-
-  let estadoAlInicio = null;
-  for (const h of hist) {
-    if (h.fecha <= fechaInicio) estadoAlInicio = h.estado;
-    else break;
-  }
-  if (estadoAlInicio === null) return false; // no hay datos previos al inicio del período
-  if (estadoAlInicio !== 'verde') return false;
-
-  const dentroDelPeriodo = hist.filter(h => h.fecha > fechaInicio && h.fecha <= fechaFin);
-  for (const h of dentroDelPeriodo) {
-    if (h.estado !== 'verde') return false;
-  }
-  return true;
+// Cantidad de faltas registradas en un período — se muestra como dato de referencia, no bloquea nada.
+function faltasEnPeriodo(empleadoId, fechaInicio, fechaFin) {
+  return faltas.filter(f => f.empleadoId === empleadoId && f.fecha >= fechaInicio && f.fecha <= fechaFin).length;
 }
 
-function tieneFaltaEnPeriodo(empleadoId, fechaInicio, fechaFin) {
-  return faltas.some(f => f.empleadoId === empleadoId && f.fecha >= fechaInicio && f.fecha <= fechaFin);
-}
-
-// Requisito único para el reconocimiento: verde sostenido todo el período Y cero faltas registradas en ese período.
-function cumpleRequisitosReconocimiento(emp, fechaInicio, fechaFin) {
-  if (tieneFaltaEnPeriodo(emp.id, fechaInicio, fechaFin)) return false;
-  return siempreVerdeEnPeriodo(emp, fechaInicio, fechaFin);
-}
-
-const UMBRAL_PUNTAJE_RECONOCIMIENTO = 30;
-
-function renderRanking(contenedorId) {
-  const anio = document.getElementById('rAnio').value;
-  const trimestre = document.getElementById('rTrimestre').value;
-  const gimFiltro = document.getElementById('rGimnasio').value;
-  const [inicio, fin] = rangoTrimestre(anio, trimestre);
-  const periodo = reconocimientos.filter(r => String(r.anio) === anio && r.trimestre === trimestre);
-
-  const porGimnasio = {};
-  periodo.forEach(r => {
-    const emp = empleados.find(e => e.id === r.empleadoId);
-    if (!emp) return;
-    if (gimFiltro && emp.gimnasio !== gimFiltro) return;
-    if (!cumpleRequisitosReconocimiento(emp, inicio, fin)) return;
-    const total = totalRec(r);
-    if (total < UMBRAL_PUNTAJE_RECONOCIMIENTO) return;
-    if (!porGimnasio[emp.gimnasio]) porGimnasio[emp.gimnasio] = [];
-    porGimnasio[emp.gimnasio].push({ nombre: emp.nombre, total });
-  });
-
-  const el = document.getElementById(contenedorId);
-  const gimnasiosAMostrar = gimFiltro ? [gimFiltro] : GIMNASIOS;
-  el.innerHTML = gimnasiosAMostrar.map(g => {
-    const califican = (porGimnasio[g] || []).sort((a,b) => b.total - a.total);
-    if (califican.length === 0) {
-      return `<div class="podio-item">
-        <div><span class="pgrupo">${escapeHtml(g)}</span><span style="color: var(--muted);">Nadie cumple los requisitos este cuatrimestre</span></div>
-      </div>`;
-    }
-    const mejorPuntaje = califican[0].total;
-    return califican.map((c, idx) => `<div class="podio-item">
-      <div><span class="pgrupo">${idx === 0 ? escapeHtml(g) : ''}</span>${c.total === mejorPuntaje ? '⭐ ' : ''}${escapeHtml(c.nombre)}</div>
-      <div class="pscore">${c.total}/40</div>
-    </div>`).join('');
-  }).join('');
+// Cantidad de estrellas (buenas prácticas) recibidas en un período — dato de referencia, no bloquea nada.
+function estrellasRecibidasEnPeriodo(empleadoId, fechaInicio, fechaFin) {
+  return buenasPracticas.filter(b => b.receptorId === empleadoId && b.fecha >= fechaInicio && b.fecha <= fechaFin).length;
 }
 
 const GIMNASIOS = ['Active', 'IM Studio', 'Impacto'];
@@ -2107,182 +2373,57 @@ function renderSeguimientoPrueba() {
     </div>`;
 }
 
-function renderRankingAnual() {
-  const anio = document.getElementById('rAnio').value;
+// Lista informativa: todos los empleados activos, agrupados por gimnasio, ordenados por puntaje de
+// Evaluación de desempeño (de mayor a menor) y, a igualdad, por menos faltas. No hay puntaje único ni
+// umbral — es solo una ayuda de lectura para que coordinación decida a mano quién aplica.
+function renderReconocimiento() {
+  const anio = document.getElementById('rAnio').value || new Date().getFullYear();
+  const trimestre = document.getElementById('rTrimestre').value;
   const gimFiltro = document.getElementById('rGimnasio').value;
-  const [inicioAnio, finAnio] = rangoAnio(anio);
-  const delAnio = reconocimientos.filter(r => String(r.anio) === anio);
+  const [inicio, fin] = rangoTrimestre(anio, trimestre);
 
-  const porEmpleado = {};
-  delAnio.forEach(r => {
-    const emp = empleados.find(e => e.id === r.empleadoId);
-    if (!emp) return;
-    if (gimFiltro && emp.gimnasio !== gimFiltro) return;
-    if (!porEmpleado[r.empleadoId]) porEmpleado[r.empleadoId] = { emp, totales: [] };
-    porEmpleado[r.empleadoId].totales.push(totalRec(r));
+  const activos = empleados.filter(e => (e.estadoLaboral || 'Activo') === 'Activo' && (!gimFiltro || e.gimnasio === gimFiltro));
+
+  const filas = activos.map(emp => {
+    const evalPeriodo = evaluacionDelPeriodo(emp.id, inicio, fin);
+    const puntaje = (evalPeriodo && evalPeriodo.puntajeTotal) ? puntajeEvaluacion(evalPeriodo) : null;
+    const porcentaje = puntaje && puntaje.total > 0 ? puntaje.obtenido / puntaje.total : -1;
+    const faltasCant = faltasEnPeriodo(emp.id, inicio, fin);
+    const estrellasCant = estrellasRecibidasEnPeriodo(emp.id, inicio, fin);
+    return { emp, puntaje, porcentaje, faltasCant, estrellasCant };
   });
 
   const porGimnasio = {};
-  Object.values(porEmpleado).forEach(({ emp, totales }) => {
-    if (totales.length < 3) return;
-    if (!cumpleRequisitosReconocimiento(emp, inicioAnio, finAnio)) return;
-    const promedio = totales.reduce((a,b) => a+b, 0) / totales.length;
-    if (promedio < UMBRAL_PUNTAJE_RECONOCIMIENTO) return;
-    const clave = emp.gimnasio;
-    if (!porGimnasio[clave] || promedio > porGimnasio[clave].promedio) {
-      porGimnasio[clave] = { promedio, nombre: emp.nombre };
-    }
+  filas.forEach(f => {
+    if (!porGimnasio[f.emp.gimnasio]) porGimnasio[f.emp.gimnasio] = [];
+    porGimnasio[f.emp.gimnasio].push(f);
   });
 
-  const el = document.getElementById('rankingAnual');
   const gimnasiosAMostrar = gimFiltro ? [gimFiltro] : GIMNASIOS;
+  const el = document.getElementById('listaRec');
   el.innerHTML = gimnasiosAMostrar.map(g => {
-    const ganador = porGimnasio[g];
-    if (!ganador) {
-      return `<div class="podio-item">
-        <div><span class="pgrupo">${escapeHtml(g)}</span><span style="color: var(--muted);">Sin destacado — nadie tuvo desempeño intachable (verde sin faltas) los 3 cuatrimestres del año</span></div>
-      </div>`;
-    }
-    return `<div class="podio-item">
-      <div><span class="pgrupo">${escapeHtml(g)}</span>${escapeHtml(ganador.nombre)}</div>
-      <div class="pscore">${ganador.promedio.toFixed(1)}/40</div>
-    </div>`;
-  }).join('');
-}
-
-function renderReconocimiento() {
-  renderRanking('rankingGimnasio');
-  renderRankingAnual();
-
-  const gimFiltro = document.getElementById('rGimnasio').value;
-  const sorted = reconocimientos
-    .filter(r => {
-      if (!gimFiltro) return true;
-      const emp = empleados.find(e => e.id === r.empleadoId);
-      return emp && emp.gimnasio === gimFiltro;
-    })
-    .sort((a,b) => {
-      if (b.anio !== a.anio) return b.anio - a.anio;
-      return b.trimestre.localeCompare(a.trimestre);
+    const lista = (porGimnasio[g] || []).sort((a,b) => {
+      if (b.porcentaje !== a.porcentaje) return b.porcentaje - a.porcentaje;
+      return a.faltasCant - b.faltasCant;
     });
-
-  document.getElementById('statusRec').textContent = sorted.length + ' evaluación(es) cargada(s)';
-  const lista = document.getElementById('listaRec');
-  if (sorted.length === 0) {
-    lista.innerHTML = '<div class="empty">Todavía no hay evaluaciones cargadas.<br>Sumá la primera con "+ Cargar evaluación".</div>';
-    return;
-  }
-
-  lista.innerHTML = sorted.map(r => {
-    const emp = empleados.find(e => e.id === r.empleadoId);
-    const nombre = emp ? emp.nombre : 'Empleado eliminado';
-    const gimnasio = emp ? emp.gimnasio : '—';
-    const estadoActual = emp ? estadoActualEmpleado(emp.id) : null;
-    const [inicioT, finT] = rangoTrimestre(r.anio, r.trimestre);
-    const total = totalRec(r);
-    const cumpleRequisitos = emp ? cumpleRequisitosReconocimiento(emp, inicioT, finT) : false;
-    const cumple = cumpleRequisitos && total >= UMBRAL_PUNTAJE_RECONOCIMIENTO;
-    const motivoNoCuenta = emp && !cumple
-      ? (tieneFaltaEnPeriodo(emp.id, inicioT, finT) ? 'No cuenta — tuvo una falta registrada en el cuatrimestre'
-        : !cumpleRequisitos ? 'No cuenta — no fue verde todo el cuatrimestre'
-        : `No cuenta — puntaje por debajo de ${UMBRAL_PUNTAJE_RECONOCIMIENTO}/40`)
-      : '';
+    if (lista.length === 0) {
+      return `<div class="card"><p style="color: var(--muted); margin:0;"><strong>${escapeHtml(g)}</strong> — sin empleados activos.</p></div>`;
+    }
     return `
-    <div class="card">
-      <div class="card-head">
-        <div>
-          <span class="tag ${claseGimnasio(gimnasio)}">${escapeHtml(gimnasio)}</span>
-          <span class="elig-badge ${cumple ? 'si' : 'no'}">${cumple ? 'Cuenta para el reconocimiento' : motivoNoCuenta}</span>
-          ${estadoActual ? `<span class="semaforo-badge ${estadoActual}"><span class="dot ${estadoActual}"></span>Ahora: ${semLabels[estadoActual]}</span>` : ''}
-          <p class="name">${escapeHtml(nombre)}</p>
-          <p class="role">${trimLabels[r.trimestre]} ${r.anio}</p>
-        </div>
-      </div>
-      <div class="score-grid">
-        <div class="score-box"><div class="slabel">Horario</div><div class="sval">${r.horario}</div></div>
-        <div class="score-box"><div class="slabel">Estándares</div><div class="sval">${r.estandares}</div></div>
-        <div class="score-box"><div class="slabel">Compromiso</div><div class="sval">${r.compromiso}</div></div>
-        <div class="score-box"><div class="slabel">Clientes</div><div class="sval">${r.clientes}</div></div>
-      </div>
-      <div class="rows">
-        <div class="row"><span class="k">Total</span><span class="v">${total} / 40</span></div>
-      </div>
-      ${r.nota ? `<p style="font-size:13px; margin-top:8px;">${escapeHtml(r.nota)}</p>` : ''}
-      <div class="card-actions">
-        <button class="btn secondary small" onclick="editarRec('${r.id}')">Editar</button>
-        <button class="btn danger small" onclick="eliminarRec('${r.id}')">Eliminar</button>
-      </div>
-    </div>`;
+      <div class="card">
+        <p class="name" style="margin-bottom:10px;">${escapeHtml(g)}</p>
+        ${lista.map(f => `
+          <div class="podio-item">
+            <div>${escapeHtml(f.emp.nombre)}</div>
+            <div style="display:flex; gap:14px; font-size:12px; color: var(--muted);">
+              <span>Evaluación: <strong style="color: var(--ink);">${f.puntaje ? f.puntaje.obtenido + '/' + f.puntaje.total : 'Sin cargar'}</strong></span>
+              <span>Faltas: <strong style="color: var(--ink);">${f.faltasCant}</strong></span>
+              <span>Estrellas: <strong style="color: var(--ink);">${f.estrellasCant}</strong></span>
+            </div>
+          </div>`).join('')}
+      </div>`;
   }).join('');
 }
-
-function abrirModalRec(r) {
-  editingRecId = r ? r.id : null;
-  poblarSelectEmpleadosRec();
-  document.getElementById('modalTitleRec').textContent = r ? 'Editar evaluación' : 'Nueva evaluación de reconocimiento';
-  document.getElementById('rEmpleado').value = r ? r.empleadoId : '';
-  document.getElementById('rAnioModal').value = r ? r.anio : new Date().getFullYear();
-  document.getElementById('rTrimestreModal').value = r ? r.trimestre : 'C1';
-  document.getElementById('rHorario').value = r ? r.horario : '';
-  document.getElementById('rEstandares').value = r ? r.estandares : '';
-  document.getElementById('rCompromiso').value = r ? r.compromiso : '';
-  document.getElementById('rClientes').value = r ? r.clientes : '';
-  document.getElementById('rNota').value = r ? (r.nota || '') : '';
-  document.getElementById('formErrorRec').style.display = 'none';
-  document.getElementById('overlayRec').classList.add('open');
-}
-function cerrarModalRec() {
-  document.getElementById('overlayRec').classList.remove('open');
-  document.getElementById('formRec').reset();
-  editingRecId = null;
-}
-function editarRec(id) {
-  const r = reconocimientos.find(x => x.id === id);
-  if (r) abrirModalRec(r);
-}
-async function eliminarRec(id) {
-  if (!(await customConfirm('¿Eliminar esta evaluación? Esta acción no se puede deshacer.'))) return;
-  reconocimientos = reconocimientos.filter(x => x.id !== id);
-  const ok = await guardarReconocimientos();
-  if (ok) { poblarAnios(); renderReconocimiento(); }
-}
-
-document.getElementById('btnNuevoRec').addEventListener('click', () => abrirModalRec(null));
-document.getElementById('btnCancelarRec').addEventListener('click', cerrarModalRec);
-document.getElementById('overlayRec').addEventListener('click', (ev) => { if (ev.target.id === 'overlayRec') cerrarModalRec(); });
-
-document.getElementById('btnGuardarRec').addEventListener('click', async (ev) => {
-  ev.preventDefault();
-  const empleadoId = document.getElementById('rEmpleado').value;
-  const anio = parseInt(document.getElementById('rAnioModal').value, 10);
-  const trimestre = document.getElementById('rTrimestreModal').value;
-  const horario = parseInt(document.getElementById('rHorario').value, 10);
-  const estandares = parseInt(document.getElementById('rEstandares').value, 10);
-  const compromiso = parseInt(document.getElementById('rCompromiso').value, 10);
-  const clientes = parseInt(document.getElementById('rClientes').value, 10);
-  const errEl = document.getElementById('formErrorRec');
-
-  const scoresValidos = [horario, estandares, compromiso, clientes].every(v => Number.isInteger(v) && v >= 1 && v <= 10);
-  if (!empleadoId || !anio || !scoresValidos) {
-    errEl.textContent = 'Completa empleado, año y los 4 puntajes (entre 1 y 10) antes de guardar.';
-    errEl.style.display = 'block';
-    return;
-  }
-  errEl.style.display = 'none';
-
-  const data = {
-    id: editingRecId || (Date.now().toString(36) + Math.random().toString(36).slice(2,7)),
-    empleadoId, anio, trimestre,
-    horario, estandares, compromiso, clientes,
-    nota: document.getElementById('rNota').value.trim()
-  };
-
-  if (editingRecId) { reconocimientos = reconocimientos.map(x => x.id === editingRecId ? data : x); }
-  else { reconocimientos.push(data); }
-
-  const ok = await guardarReconocimientos();
-  if (ok) { cerrarModalRec(); poblarAnios(); renderReconocimiento(); }
-});
 
 document.getElementById('rAnio').addEventListener('change', renderReconocimiento);
 document.getElementById('rTrimestre').addEventListener('change', renderReconocimiento);
@@ -2292,28 +2433,6 @@ document.getElementById('rGimnasio').addEventListener('change', renderReconocimi
 function faltasDelMes(empleadoId, fecha, excluirId) {
   const mes = fecha.slice(0,7);
   return faltas.filter(f => f.empleadoId === empleadoId && f.fecha && f.fecha.slice(0,7) === mes && f.id !== excluirId);
-}
-
-async function aplicarEfectoSemaforo(empleadoId, numero, aspecto) {
-  const emp = empleados.find(e => e.id === empleadoId);
-  if (!emp) return;
-  const estadoActual = estadoActualEmpleado(empleadoId);
-  let nuevoEstado = null;
-  if (numero >= 3) nuevoEstado = 'rojo';
-  else if (numero >= 1 && estadoActual !== 'rojo') nuevoEstado = 'amarillo';
-
-  if (nuevoEstado && estadoActual !== nuevoEstado) {
-    const hoy = new Date().toISOString().slice(0,10);
-    const etiquetaNumero = numero === 1 ? '1ra' : numero === 2 ? '2da' : numero + 'ra o más';
-    informes.push({
-      id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
-      fecha: hoy, gimnasio: emp.gimnasio, area: 'Automático (sistema)',
-      empleadoId, participantes: '',
-      resumen: `Cambio automático de estado: ${etiquetaNumero} falta registrada este mes (${aspecto}).`,
-      pendientes: '', link: '', estado: nuevoEstado
-    });
-    await guardarInformes();
-  }
 }
 
 function poblarAniosFal() {
@@ -2469,7 +2588,6 @@ document.getElementById('btnGuardarFal').addEventListener('click', async (ev) =>
 
   const ok = await guardarFaltas();
   if (ok) {
-    await aplicarEfectoSemaforo(empleadoId, numero, aspecto);
     cerrarModalFal();
     poblarAniosFal();
     renderFaltas();
@@ -2914,7 +3032,9 @@ function exportarTodo() {
     return {
       'Fecha': i.fecha, 'Gimnasio': i.gimnasio, 'Tipo': i.area, 'Empleado': emp ? emp.nombre : '',
       'Otros participantes': i.participantes || '', 'Resumen': i.resumen || '',
-      'Pendientes': i.pendientes || '', 'Estado asignado': i.estado || '', 'Link': i.link || ''
+      'Pendientes': i.pendientes || '', 'Estado asignado': i.estado || '', 'Link': i.link || '',
+      'Puntaje obtenido': i.puntajeObtenido !== undefined ? i.puntajeObtenido : '',
+      'Puntaje total': i.puntajeTotal !== undefined ? i.puntajeTotal : ''
     };
   });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaInformes), 'Reuniones y evaluaciones');
@@ -3064,8 +3184,8 @@ async function importarExcelEmpleados(ev) {
 
   const ok = await guardarEmpleados();
   if (ok) {
-    poblarSelectEmpleados(); poblarSelectEmpleadosRec(); poblarSelectEmpleadosFal(); poblarSelectEmpleadosVac(); poblarSelectEmpleadosLic();
-    renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados(); renderInformes();
+    poblarSelectEmpleados(); poblarSelectEmpleadosFal(); poblarSelectEmpleadosVac(); poblarSelectEmpleadosLic();
+    renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados(); renderInformes(); renderEvaluaciones();
   }
 
   let msg = `Se importaron ${importados} empleado(s) nuevo(s) correctamente.`;
@@ -3167,7 +3287,9 @@ async function restaurarTodo(ev) {
     resumen: (row['Resumen'] || '').toString(),
     pendientes: (row['Pendientes'] || '').toString(),
     estado: (row['Estado asignado'] || '').toString().trim() || null,
-    link: (row['Link'] || '').toString()
+    link: (row['Link'] || '').toString(),
+    puntajeObtenido: row['Puntaje obtenido'] !== undefined && row['Puntaje obtenido'] !== '' ? parseInt(row['Puntaje obtenido'], 10) : undefined,
+    puntajeTotal: row['Puntaje total'] !== undefined && row['Puntaje total'] !== '' ? parseInt(row['Puntaje total'], 10) : undefined
   })).filter(i => i.fecha);
 
   const nuevosReconocimientos = leerHoja('Reconocimiento').map((row, idx) => ({
@@ -3221,9 +3343,9 @@ async function restaurarTodo(ev) {
   await guardarVacaciones();
   await guardarLicencias();
 
-  poblarSelectEmpleados(); poblarSelectEmpleadosRec(); poblarSelectEmpleadosFal(); poblarSelectEmpleadosVac(); poblarSelectEmpleadosLic();
+  poblarSelectEmpleados(); poblarSelectEmpleadosFal(); poblarSelectEmpleadosVac(); poblarSelectEmpleadosLic();
   poblarAnios(); poblarAniosFal();
-  renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados(); renderInformes();
+  renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados(); renderInformes(); renderEvaluaciones();
   renderReconocimiento(); renderFaltas(); renderVacaciones(); renderLicencias();
 
   ev.target.value = '';
