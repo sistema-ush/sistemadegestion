@@ -637,10 +637,6 @@
     <div class="side-col">
       <div id="cumpleanosWrap"></div>
       <div id="seguimientoPruebaWrap"></div>
-
-      <div id="sidebarFaltasNotice" class="notice" style="display:none;">
-        Registro simple: elegí a qué aspecto corresponde, quién y cuándo.
-      </div>
     </div>
   </div>
 
@@ -1623,7 +1619,6 @@ function renderDetalleDashboard() {
 
 /* ---------- TABS ---------- */
 function actualizarSidebarPorTab(tab) {
-  document.getElementById('sidebarFaltasNotice').style.display = tab === 'faltas' ? 'block' : 'none';
   document.getElementById('dashboardRow').style.display = tab === 'empleados' ? 'flex' : 'none';
   document.getElementById('dashboardDetalle').style.display = tab === 'empleados' ? 'block' : 'none';
   document.getElementById('cumpleanosWrap').style.display = tab === 'empleados' ? 'block' : 'none';
