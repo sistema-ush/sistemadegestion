@@ -608,10 +608,6 @@
   </div>
 
   <div class="tab-panel" id="panel-licencias">
-    <div class="notice">
-      Registro administrativo — no se suben archivos. Queda constancia de que se presentó el certificado o la licencia, la fecha y el período que cubre.
-    </div>
-
     <div class="toolbar">
       <select id="fGimnasioLic">
         <option value="">Todos los gimnasios</option>
@@ -1630,6 +1626,8 @@ function actualizarSidebarPorTab(tab) {
   document.getElementById('sidebarFaltasNotice').style.display = tab === 'faltas' ? 'block' : 'none';
   document.getElementById('dashboardRow').style.display = tab === 'empleados' ? 'flex' : 'none';
   document.getElementById('dashboardDetalle').style.display = tab === 'empleados' ? 'block' : 'none';
+  document.getElementById('cumpleanosWrap').style.display = tab === 'empleados' ? 'block' : 'none';
+  document.getElementById('seguimientoPruebaWrap').style.display = tab === 'empleados' ? 'block' : 'none';
 }
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
