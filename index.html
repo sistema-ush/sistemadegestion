@@ -356,7 +356,7 @@
   <button class="tab-btn" data-tab="reconocimiento">Reconocimiento</button>
   <button class="tab-btn" data-tab="vacaciones">Vacaciones</button>
   <button class="tab-btn" data-tab="licencias">Licencias y Certificados</button>
-  <button class="tab-btn" data-tab="buenaspracticas">⭐ Buenas prácticas<span class="badge-nuevo" id="badgeBp" style="display:none;"></span></button>
+  <button class="tab-btn" data-tab="buenaspracticas">⭐ Sistema de estrellas<span class="badge-nuevo" id="badgeBp" style="display:none;"></span></button>
 </div>
 <div class="lock-screen" id="lockScreen">
   <div class="lock-box">
@@ -392,6 +392,8 @@
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
       <button class="btn" id="btnExportar" style="font-size:12px; padding:6px 12px;">⬇ Exportar Excel</button>
+      <button class="btn secondary" id="btnCombinar" style="font-size:12px; padding:6px 12px;">🔀 Combinar Excel (sin duplicar)</button>
+      <input type="file" id="inputCombinar" accept=".xlsx,.xls" style="display:none;">
       <button class="btn secondary" id="btnRestaurar" style="font-size:12px; padding:6px 12px;">♻ Restaurar todo</button>
       <input type="file" id="inputRestaurar" accept=".xlsx,.xls" style="display:none;">
     </div>
@@ -489,7 +491,7 @@
   </div>
 
   <div class="tab-panel" id="panel-buenaspracticas">
-    <p style="font-size:13px; color: var(--muted); margin: 0 0 12px;">Las estrellas se cargan desde la página del equipo (con DNI). Acá solo se ven los rankings y el historial, como referencia.</p>
+    <p style="font-size:13px; color: var(--muted); margin: 0 0 12px;">Las estrellas se cargan desde la página del equipo (con DNI). Acá se ven los rankings y el historial, y se puede editar o eliminar una estrella puntual si hay un error.</p>
 
     <div class="rubrica">
       <div class="rubrica-toggle" onclick="toggleBloque('bpRankings-body')">
@@ -639,23 +641,6 @@
     <div class="side-col">
       <div id="cumpleanosWrap"></div>
       <div id="seguimientoPruebaWrap"></div>
-
-      <div id="sidebarLeyenda" style="display:none;">
-        <div class="legend">
-          <div class="legend-item verde">
-            <div class="lhead"><span class="dot verde"></span>Verde</div>
-            <p>Meta cumplida, buen desempeño o asistencia correcta. Todo marcha bien.</p>
-          </div>
-          <div class="legend-item amarillo">
-            <div class="lhead"><span class="dot amarillo"></span>Amarillo</div>
-            <p>Alerta o riesgo medio. Rendimiento bajo, retrasos o áreas que necesitan revisión.</p>
-          </div>
-          <div class="legend-item rojo">
-            <div class="lhead"><span class="dot rojo"></span>Rojo</div>
-            <p>Problema grave. Objetivos no cumplidos, ausentismo alto o conflictos urgentes que exigen acción inmediata.</p>
-          </div>
-        </div>
-      </div>
 
       <div id="sidebarFaltasNotice" class="notice" style="display:none;">
         Registro simple: elegí a qué aspecto corresponde, quién y cuándo.
@@ -937,14 +922,14 @@
           <option value="De coordinación">De coordinación</option>
         </select>
       </div>
-      <div class="section-label perf">Semáforo de esta reunión (opcional)</div>
+      <div class="section-label perf">Semáforo: condiciones generales de la persona, personales o laborales (opcional)</div>
       <div class="form-row">
         <label for="iEstado">Estado</label>
         <select id="iEstado">
           <option value="">Sin evaluar en esta reunión</option>
-          <option value="verde">🟢 Verde — Cumple</option>
-          <option value="amarillo">🟡 Amarillo — Riesgo medio</option>
-          <option value="rojo">🔴 Rojo — Problema grave</option>
+          <option value="verde">🟢 Verde — Todo bien</option>
+          <option value="amarillo">🟡 Amarillo — Alguna situación a seguir</option>
+          <option value="rojo">🔴 Rojo — Situación seria, necesita atención</option>
         </select>
       </div>
       <div class="form-row">
@@ -1016,6 +1001,39 @@
       <div class="modal-actions">
         <button type="button" class="btn secondary" id="btnCancelarEval">Cancelar</button>
         <button type="button" class="btn" id="btnGuardarEval">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="overlay" id="overlayBp">
+  <div class="modal">
+    <h3>Editar estrella</h3>
+    <form id="formBp">
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="bpDadaPor">Quién la da</label>
+          <input type="text" id="bpDadaPor" list="listaBpDadores" placeholder="Escribí el nombre... (o 'Coordinación')" required>
+          <datalist id="listaBpDadores"></datalist>
+        </div>
+        <div class="form-row">
+          <label for="bpReceptor">Quién la recibe</label>
+          <input type="text" id="bpReceptor" list="listaBpReceptores" placeholder="Escribí el nombre..." required>
+          <datalist id="listaBpReceptores"></datalist>
+        </div>
+      </div>
+      <div class="form-row">
+        <label for="bpFecha">Fecha</label>
+        <input type="date" id="bpFecha" required>
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <label for="bpNota">¿Qué buena práctica hizo?</label>
+        <textarea id="bpNota" rows="3" required></textarea>
+      </div>
+      <div class="error-text" id="formErrorBp" style="display:none;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" id="btnCancelarBp">Cancelar</button>
+        <button type="button" class="btn" id="btnGuardarBp">Guardar</button>
       </div>
     </form>
   </div>
@@ -1126,7 +1144,7 @@ const K_LIC = 'licencias-data';
 const K_BP = 'buenas-practicas-data';
 const K_BP_VISTA = 'buenas-practicas-ultima-vista';
 const trimLabels = { C1: 'Ene–Abr', C2: 'May–Ago', C3: 'Sep–Dic' };
-const semLabels = { verde: '🟢 Verde — Cumple', amarillo: '🟡 Amarillo — Riesgo medio', rojo: '🔴 Rojo — Problema grave', 'sin-evaluar': 'Sin evaluar' };
+const semLabels = { verde: '🟢 Verde — Todo bien', amarillo: '🟡 Amarillo — Situación a seguir', rojo: '🔴 Rojo — Situación seria', 'sin-evaluar': 'Sin evaluar' };
 
 /* ---------- CONFIRM / ALERT PROPIOS (los nativos del navegador quedan bloqueados en este entorno) ---------- */
 function customConfirm(mensaje) {
@@ -1202,7 +1220,7 @@ function areaClass(area) {
 }
 
 // Historial de semáforo de un empleado, derivado de las reuniones generales (NO incluye Evaluación de desempeño).
-// Este semáforo es informal / "estado de salud" y NO influye en el Reconocimiento.
+// Este semáforo refleja las condiciones generales de la persona (personales o laborales) y NO influye en el Reconocimiento.
 function historialDeEmpleado(empleadoId) {
   return informes
     .filter(i => i.empleadoId === empleadoId && i.estado && i.area !== 'Evaluación de desempeño' && i.area !== 'Automático (sistema)')
@@ -1451,6 +1469,13 @@ function poblarAnios() {
   const actual = sel.value || String(anioActual);
   sel.innerHTML = Array.from(anios).sort((a,b) => b - a).map(a => `<option value="${a}">${a}</option>`).join('');
   sel.value = actual;
+
+  // El cuatrimestre arranca en el actual (según la fecha de hoy), no siempre en "Ene–Abr".
+  const selTrim = document.getElementById('rTrimestre');
+  if (!selTrim.dataset.inicializado) {
+    selTrim.value = 'C' + (Math.floor(new Date().getMonth() / 4) + 1);
+    selTrim.dataset.inicializado = '1';
+  }
 }
 
 function renderDashboard() {
@@ -1602,7 +1627,6 @@ function renderDetalleDashboard() {
 
 /* ---------- TABS ---------- */
 function actualizarSidebarPorTab(tab) {
-  document.getElementById('sidebarLeyenda').style.display = tab === 'informes' ? 'block' : 'none';
   document.getElementById('sidebarFaltasNotice').style.display = tab === 'faltas' ? 'block' : 'none';
   document.getElementById('dashboardRow').style.display = tab === 'empleados' ? 'flex' : 'none';
   document.getElementById('dashboardDetalle').style.display = tab === 'empleados' ? 'block' : 'none';
@@ -2151,11 +2175,93 @@ document.getElementById('fGimnasioEval').addEventListener('change', renderEvalua
 document.getElementById('fMesEval').addEventListener('change', renderEvaluaciones);
 document.getElementById('fBuscarEval').addEventListener('input', renderEvaluaciones);
 
-/* ---------- BUENAS PRÁCTICAS (ESTRELLAS) — de solo lectura en este sistema ---------- */
+/* ---------- BUENAS PRÁCTICAS (ESTRELLAS) — se cargan desde la página del equipo; acá solo se editan/eliminan por error ---------- */
 function poblarSelectEmpleadosBp() {
   const activos = empleados.filter(e => (e.estadoLaboral || 'Activo') === 'Activo');
-  document.getElementById('listaBpReceptoresFiltro').innerHTML = activos.map(e => `<option value="${escapeHtml(e.nombre)}">`).join('');
+  const opciones = activos.map(e => `<option value="${escapeHtml(e.nombre)}">`).join('');
+  document.getElementById('listaBpReceptoresFiltro').innerHTML = opciones;
+  document.getElementById('listaBpReceptores').innerHTML = opciones;
+  document.getElementById('listaBpDadores').innerHTML = '<option value="Coordinación">' + opciones;
 }
+
+// Resuelve el texto tipeado en el campo a un id de empleado (o 'coordinacion'). null si no coincide con nadie.
+function idPorNombreBp(nombre, permitirCoordinacion) {
+  const limpio = (nombre || '').trim().toLowerCase();
+  if (!limpio) return null;
+  if (permitirCoordinacion && limpio === 'coordinación') return 'coordinacion';
+  const emp = empleados.find(e => e.nombre.trim().toLowerCase() === limpio);
+  return emp ? emp.id : null;
+}
+
+let editingBpId = null;
+function abrirModalBp(bp) {
+  editingBpId = bp.id;
+  poblarSelectEmpleadosBp();
+  document.getElementById('bpDadaPor').value = nombreDador(bp);
+  document.getElementById('bpReceptor').value = (empleados.find(e => e.id === bp.receptorId) || {}).nombre || '';
+  document.getElementById('bpFecha').value = bp.fecha;
+  document.getElementById('bpNota').value = bp.nota;
+  document.getElementById('formErrorBp').style.display = 'none';
+  document.getElementById('overlayBp').classList.add('open');
+}
+function cerrarModalBp() {
+  document.getElementById('overlayBp').classList.remove('open');
+  document.getElementById('formBp').reset();
+  editingBpId = null;
+}
+function editarBp(id) {
+  const bp = buenasPracticas.find(b => b.id === id);
+  if (bp) abrirModalBp(bp);
+}
+async function eliminarBp(id) {
+  if (!(await customConfirm('¿Eliminar esta estrella? Esta acción no se puede deshacer.'))) return;
+  buenasPracticas = buenasPracticas.filter(b => b.id !== id);
+  const ok = await guardarBuenasPracticas();
+  if (ok) { renderBuenasPracticas(); renderDashboard(); renderReconocimiento(); }
+}
+
+document.getElementById('btnCancelarBp').addEventListener('click', cerrarModalBp);
+document.getElementById('overlayBp').addEventListener('click', (ev) => { if (ev.target.id === 'overlayBp') cerrarModalBp(); });
+
+document.getElementById('btnGuardarBp').addEventListener('click', async (ev) => {
+  ev.preventDefault();
+  const dadaPorTexto = document.getElementById('bpDadaPor').value;
+  const receptorTexto = document.getElementById('bpReceptor').value;
+  const fecha = document.getElementById('bpFecha').value;
+  const nota = document.getElementById('bpNota').value.trim();
+  const errEl = document.getElementById('formErrorBp');
+
+  if (!dadaPorTexto.trim() || !receptorTexto.trim() || !fecha || !nota) {
+    errEl.textContent = 'Completá quién la da, quién la recibe, la fecha y la nota antes de guardar.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const dadaPorId = idPorNombreBp(dadaPorTexto, true);
+  if (!dadaPorId) {
+    errEl.textContent = `No encontramos a "${dadaPorTexto}" entre los empleados activos (o "Coordinación"). Elegí una opción de la lista sugerida.`;
+    errEl.style.display = 'block';
+    return;
+  }
+  const receptorId = idPorNombreBp(receptorTexto, false);
+  if (!receptorId) {
+    errEl.textContent = `No encontramos a "${receptorTexto}" entre los empleados activos. Elegí una opción de la lista sugerida.`;
+    errEl.style.display = 'block';
+    return;
+  }
+  if (dadaPorId === receptorId) {
+    errEl.textContent = 'No podés dejar una estrella dada y recibida por la misma persona.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const existente = buenasPracticas.find(b => b.id === editingBpId);
+  const data = { ...existente, fecha, dadaPorId, receptorId, nota };
+  buenasPracticas = buenasPracticas.map(b => b.id === editingBpId ? data : b);
+
+  const ok = await guardarBuenasPracticas();
+  if (ok) { cerrarModalBp(); renderBuenasPracticas(); renderDashboard(); renderReconocimiento(); }
+});
 
 function nombreDador(bp) {
   if (bp.dadaPorId === 'coordinacion') return 'Coordinación';
@@ -2190,16 +2296,17 @@ function renderBuenasPracticas() {
 
   lista.innerHTML = filtradas.map(bp => {
     const receptor = empleados.find(e => e.id === bp.receptorId);
-    const receptorHtml = receptor ? `<span class="tag">${escapeHtml(receptor.nombre)}</span>` : '<span class="tag">Empleado eliminado</span>';
+    const nombreReceptor = receptor ? receptor.nombre : 'Empleado eliminado';
     return `
       <div class="card">
         <div class="card-head">
           <div>
-            <div>
-              ⭐ ${receptorHtml}
-              <span class="tag">de: ${escapeHtml(nombreDador(bp))}</span>
-            </div>
-            <p class="name">${fmtFecha(bp.fecha)}</p>
+            <p class="name">⭐ ${escapeHtml(nombreDador(bp))} le dio una estrella a ${escapeHtml(nombreReceptor)}</p>
+            <p class="role">${fmtFecha(bp.fecha)}</p>
+          </div>
+          <div class="card-actions">
+            <button class="btn secondary small" onclick="editarBp('${bp.id}')">Editar</button>
+            <button class="btn danger small" onclick="eliminarBp('${bp.id}')">Eliminar</button>
           </div>
         </div>
         <div class="card-body">
@@ -3075,6 +3182,18 @@ function exportarTodo() {
   });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaLicencias), 'Licencias y Certificados');
 
+  const hojaBuenasPracticas = buenasPracticas.map(b => {
+    const receptor = empleados.find(e => e.id === b.receptorId);
+    return {
+      'Fecha': b.fecha,
+      'Quién la dio': nombreDador(b),
+      'Quién la recibió': receptor ? receptor.nombre : '',
+      'Gimnasio (de quién recibió)': receptor ? receptor.gimnasio : '',
+      'Nota': b.nota || ''
+    };
+  });
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaBuenasPracticas), 'Buenas prácticas');
+
   const hoy = new Date().toISOString().slice(0,10);
   XLSX.writeFile(wb, `capital-humano-export-${hoy}.xlsx`);
 }
@@ -3198,6 +3317,211 @@ async function importarExcelEmpleados(ev) {
 document.getElementById('btnDescargarPlantilla').addEventListener('click', descargarPlantilla);
 document.getElementById('btnImportarExcel').addEventListener('click', () => document.getElementById('inputImportarExcel').click());
 document.getElementById('inputImportarExcel').addEventListener('change', importarExcelEmpleados);
+
+/* ---------- COMBINAR EXCEL SIN DUPLICAR ---------- */
+async function combinarDesdeExcel(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+
+  if (!(await customConfirm('Esto va a AGREGAR lo que falte de este Excel a lo que ya está cargado, sin duplicar ni borrar nada existente. Usalo solo con un archivo exportado desde esta misma herramienta. ¿Continuar?'))) {
+    ev.target.value = '';
+    return;
+  }
+
+  let wb;
+  try {
+    const data = await file.arrayBuffer();
+    wb = XLSX.read(data, { type: 'array', cellDates: true });
+  } catch (err) {
+    await customAlert('No se pudo leer el archivo. Verificá que sea un Excel (.xlsx) válido, exportado desde esta herramienta.');
+    ev.target.value = '';
+    return;
+  }
+
+  const leerHoja = (nombre) => {
+    const ws = wb.Sheets[nombre];
+    return ws ? XLSX.utils.sheet_to_json(ws, { defval: '' }) : [];
+  };
+  const dnisNormalizados = (s) => (s || '').toString().replace(/[.\s-]/g, '');
+  const contadores = { empleados: 0, informes: 0, reconocimientos: 0, faltas: 0, vacaciones: 0, licencias: 0, buenasPracticas: 0 };
+
+  // 1. EMPLEADOS — se agregan los que no coincidan por DNI con uno ya cargado.
+  leerHoja('Empleados').forEach((row, idx) => {
+    const nombre = (row['Nombre y apellido'] || '').toString().trim();
+    const gimnasio = (row['Gimnasio'] || '').toString().trim();
+    const dni = (row['DNI'] || '').toString().trim();
+    if (!nombre) return;
+    const yaExiste = dni && empleados.some(e => dnisNormalizados(e.dni) === dnisNormalizados(dni) && dnisNormalizados(dni) !== '');
+    if (yaExiste) return;
+
+    const onboarding = {};
+    ONBOARDING_TAREAS.forEach(t => {
+      const fecha = parseFechaExcel(row['Onboarding: ' + t.label]);
+      onboarding[t.id] = { hecha: !!fecha, fecha: fecha || '' };
+    });
+    empleados.push({
+      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
+      nombre, gimnasio,
+      area: (row['Área / rol'] || '').toString().trim(),
+      estadoLaboral: (row['Estado laboral'] || 'Activo').toString().trim() || 'Activo',
+      fechaDesvinculacion: parseFechaExcel(row['Fecha de desvinculación']),
+      responsable: (row['Responsable de seguimiento'] || '').toString().trim(),
+      dni,
+      cuil: (row['CUIL'] || '').toString().trim(),
+      direccion: (row['Dirección'] || '').toString().trim(),
+      fechaIngreso: parseFechaExcel(row['Fecha de ingreso']),
+      fechaNacimiento: parseFechaExcel(row['Fecha de nacimiento']),
+      telefono: (row['Teléfono'] || '').toString().trim(),
+      contacto: (row['Contacto alternativo'] || '').toString().trim(),
+      emergNombre: (row['Contacto de emergencia'] || '').toString().trim(),
+      emergTelefono: (row['Teléfono de emergencia'] || '').toString().trim(),
+      onboarding
+    });
+    contadores.empleados++;
+  });
+
+  // Mapa nombre(+gimnasio) -> id, construido con los empleados YA combinados (viejos + nuevos).
+  const mapaNombreGimnasioAId = {};
+  empleados.forEach(e => {
+    mapaNombreGimnasioAId[e.nombre + '|' + e.gimnasio] = e.id;
+    if (!(e.nombre in mapaNombreGimnasioAId)) mapaNombreGimnasioAId[e.nombre] = e.id;
+  });
+  const buscarEmpleadoId = (nombre, gimnasio) => {
+    if (!nombre) return null;
+    return mapaNombreGimnasioAId[nombre + '|' + gimnasio] ?? mapaNombreGimnasioAId[nombre] ?? null;
+  };
+
+  // 2. REUNIONES/EVALUACIONES — duplicado = mismo empleado + fecha + tipo + resumen.
+  leerHoja('Reuniones y evaluaciones').forEach((row, idx) => {
+    const fecha = parseFechaExcel(row['Fecha']);
+    const area = (row['Tipo'] || '').toString().trim();
+    const resumen = (row['Resumen'] || '').toString();
+    const empleadoId = buscarEmpleadoId((row['Empleado']||'').toString().trim(), (row['Gimnasio']||'').toString().trim());
+    if (!fecha) return;
+    const yaExiste = informes.some(i => i.fecha === fecha && i.area === area && i.resumen === resumen && i.empleadoId === empleadoId);
+    if (yaExiste) return;
+    informes.push({
+      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
+      fecha, gimnasio: (row['Gimnasio'] || '').toString().trim(), area,
+      empleadoId,
+      participantes: (row['Otros participantes'] || '').toString(),
+      resumen,
+      pendientes: (row['Pendientes'] || '').toString(),
+      estado: (row['Estado asignado'] || '').toString().trim() || null,
+      link: (row['Link'] || '').toString(),
+      puntajeObtenido: row['Puntaje obtenido'] !== undefined && row['Puntaje obtenido'] !== '' ? parseInt(row['Puntaje obtenido'], 10) : undefined,
+      puntajeTotal: row['Puntaje total'] !== undefined && row['Puntaje total'] !== '' ? parseInt(row['Puntaje total'], 10) : undefined
+    });
+    contadores.informes++;
+  });
+
+  // 3. RECONOCIMIENTO — duplicado = mismo empleado + año + cuatrimestre.
+  leerHoja('Reconocimiento').forEach((row, idx) => {
+    const empleadoId = buscarEmpleadoId((row['Empleado']||'').toString().trim(), (row['Gimnasio']||'').toString().trim());
+    const anio = parseInt(row['Año'], 10) || new Date().getFullYear();
+    const trimestre = trimestreDesdeEtiqueta(row['Cuatrimestre'] || row['Trimestre']);
+    if (!empleadoId) return;
+    const yaExiste = reconocimientos.some(r => r.empleadoId === empleadoId && r.anio === anio && r.trimestre === trimestre);
+    if (yaExiste) return;
+    reconocimientos.push({
+      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
+      empleadoId, anio, trimestre,
+      horario: Number(row['Horario']) || 0, estandares: Number(row['Estándares']) || 0,
+      compromiso: Number(row['Compromiso']) || 0, clientes: Number(row['Clientes']) || 0,
+      nota: (row['Nota'] || '').toString()
+    });
+    contadores.reconocimientos++;
+  });
+
+  // 4. FALTAS — duplicado = mismo empleado + fecha + aspecto.
+  leerHoja('Faltas').forEach((row, idx) => {
+    const fecha = parseFechaExcel(row['Fecha']);
+    const empleadoId = buscarEmpleadoId((row['Empleado']||'').toString().trim(), (row['Gimnasio']||'').toString().trim());
+    const aspecto = (row['Aspecto'] || '').toString().trim();
+    if (!fecha || !empleadoId) return;
+    const yaExiste = faltas.some(f => f.fecha === fecha && f.empleadoId === empleadoId && f.aspecto === aspecto);
+    if (yaExiste) return;
+    faltas.push({
+      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
+      fecha, empleadoId, aspecto,
+      numero: parseInt(row['N° de falta del mes'], 10) || 1
+    });
+    contadores.faltas++;
+  });
+
+  // 5. VACACIONES — duplicado = mismo empleado + fecha inicio + fecha fin.
+  leerHoja('Vacaciones').forEach((row, idx) => {
+    const empleadoId = buscarEmpleadoId((row['Empleado']||'').toString().trim(), (row['Gimnasio']||'').toString().trim());
+    const fechaInicio = parseFechaExcel(row['Fecha inicio']);
+    const fechaFin = parseFechaExcel(row['Fecha fin']);
+    if (!empleadoId || !fechaInicio || !fechaFin) return;
+    const yaExiste = vacaciones.some(v => v.empleadoId === empleadoId && v.fechaInicio === fechaInicio && v.fechaFin === fechaFin);
+    if (yaExiste) return;
+    vacaciones.push({
+      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
+      empleadoId,
+      fechaSolicitud: parseFechaExcel(row['Fecha de solicitud']),
+      fechaInicio, fechaFin,
+      estado: (row['Estado'] || 'Pendiente').toString().trim() || 'Pendiente'
+    });
+    contadores.vacaciones++;
+  });
+
+  // 6. LICENCIAS — duplicado = mismo empleado + fecha inicio + fecha fin.
+  leerHoja('Licencias y Certificados').forEach((row, idx) => {
+    const empleadoId = buscarEmpleadoId((row['Empleado']||'').toString().trim(), (row['Gimnasio']||'').toString().trim());
+    const fechaInicio = parseFechaExcel(row['Desde']);
+    const fechaFin = parseFechaExcel(row['Hasta']);
+    if (!empleadoId || !fechaInicio || !fechaFin) return;
+    const yaExiste = licencias.some(l => l.empleadoId === empleadoId && l.fechaInicio === fechaInicio && l.fechaFin === fechaFin);
+    if (yaExiste) return;
+    licencias.push({
+      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
+      empleadoId,
+      tipo: (row['Tipo'] || '').toString().trim(),
+      fechaPresentacion: parseFechaExcel(row['Fecha de presentación']),
+      fechaInicio, fechaFin,
+      nota: (row['Nota'] || '').toString()
+    });
+    contadores.licencias++;
+  });
+
+  // 7. BUENAS PRÁCTICAS — duplicado = mismo dador + receptor + fecha + nota.
+  leerHoja('Buenas prácticas').forEach((row, idx) => {
+    const dadorTexto = (row['Quién la dio'] || '').toString().trim();
+    const dadaPorId = dadorTexto.toLowerCase() === 'coordinación' ? 'coordinacion' : buscarEmpleadoId(dadorTexto, '');
+    const receptorId = buscarEmpleadoId((row['Quién la recibió']||'').toString().trim(), (row['Gimnasio (de quién recibió)']||'').toString().trim());
+    const fecha = parseFechaExcel(row['Fecha']);
+    const nota = (row['Nota'] || '').toString();
+    if (!fecha || !dadaPorId || !receptorId) return;
+    const yaExiste = buenasPracticas.some(b => b.fecha === fecha && b.dadaPorId === dadaPorId && b.receptorId === receptorId && b.nota === nota);
+    if (yaExiste) return;
+    buenasPracticas.push({
+      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
+      fecha, dadaPorId, receptorId, nota, creadoEn: Date.now()
+    });
+    contadores.buenasPracticas++;
+  });
+
+  await guardarEmpleados();
+  await guardarInformes();
+  await guardarReconocimientos();
+  await guardarFaltas();
+  await guardarVacaciones();
+  await guardarLicencias();
+  await guardarBuenasPracticas();
+
+  poblarSelectEmpleados(); poblarSelectEmpleadosFal(); poblarSelectEmpleadosVac(); poblarSelectEmpleadosLic(); poblarSelectEmpleadosBp();
+  poblarAnios(); poblarAniosFal();
+  renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados(); renderInformes(); renderEvaluaciones();
+  renderReconocimiento(); renderFaltas(); renderVacaciones(); renderLicencias(); renderBuenasPracticas();
+
+  ev.target.value = '';
+  await customAlert(`Se agregó lo que faltaba: ${contadores.empleados} empleado(s), ${contadores.informes} reunión/es, ${contadores.reconocimientos} evaluación/es de reconocimiento, ${contadores.faltas} falta(s), ${contadores.vacaciones} vacacione(s), ${contadores.licencias} licencia(s), ${contadores.buenasPracticas} estrella(s). Todo lo que ya estaba cargado se salteó para no duplicar.`);
+}
+
+document.getElementById('btnCombinar').addEventListener('click', () => document.getElementById('inputCombinar').click());
+document.getElementById('inputCombinar').addEventListener('change', combinarDesdeExcel);
 
 /* ---------- RESTAURAR TODO DESDE EXCEL ---------- */
 function trimestreDesdeEtiqueta(etiqueta) {
@@ -3329,12 +3653,26 @@ async function restaurarTodo(ev) {
     nota: (row['Nota'] || '').toString()
   })).filter(l => l.empleadoId && l.fechaInicio && l.fechaFin);
 
+  const nuevasBuenasPracticas = leerHoja('Buenas prácticas').map((row, idx) => {
+    const dadorTexto = (row['Quién la dio'] || '').toString().trim();
+    const dadaPorId = dadorTexto.toLowerCase() === 'coordinación' ? 'coordinacion' : buscarEmpleadoId(dadorTexto, '');
+    return {
+      id: 'rest-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
+      fecha: parseFechaExcel(row['Fecha']),
+      dadaPorId,
+      receptorId: buscarEmpleadoId((row['Quién la recibió']||'').toString().trim(), (row['Gimnasio (de quién recibió)']||'').toString().trim()),
+      nota: (row['Nota'] || '').toString(),
+      creadoEn: Date.now()
+    };
+  }).filter(b => b.fecha && b.dadaPorId && b.receptorId);
+
   empleados = nuevosEmpleados;
   informes = nuevosInformes;
   reconocimientos = nuevosReconocimientos;
   faltas = nuevasFaltas;
   vacaciones = nuevasVacaciones;
   licencias = nuevasLicencias;
+  buenasPracticas = nuevasBuenasPracticas;
 
   await guardarEmpleados();
   await guardarInformes();
@@ -3342,14 +3680,15 @@ async function restaurarTodo(ev) {
   await guardarFaltas();
   await guardarVacaciones();
   await guardarLicencias();
+  await guardarBuenasPracticas();
 
-  poblarSelectEmpleados(); poblarSelectEmpleadosFal(); poblarSelectEmpleadosVac(); poblarSelectEmpleadosLic();
+  poblarSelectEmpleados(); poblarSelectEmpleadosFal(); poblarSelectEmpleadosVac(); poblarSelectEmpleadosLic(); poblarSelectEmpleadosBp();
   poblarAnios(); poblarAniosFal();
   renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados(); renderInformes(); renderEvaluaciones();
-  renderReconocimiento(); renderFaltas(); renderVacaciones(); renderLicencias();
+  renderReconocimiento(); renderFaltas(); renderVacaciones(); renderLicencias(); renderBuenasPracticas();
 
   ev.target.value = '';
-  await customAlert(`Restaurado: ${nuevosEmpleados.length} empleado(s), ${nuevosInformes.length} reunión/es, ${nuevosReconocimientos.length} evaluación/es de reconocimiento, ${nuevasFaltas.length} falta(s), ${nuevasVacaciones.length} vacacione(s), ${nuevasLicencias.length} licencia(s)/certificado(s).`);
+  await customAlert(`Restaurado: ${nuevosEmpleados.length} empleado(s), ${nuevosInformes.length} reunión/es, ${nuevosReconocimientos.length} evaluación/es de reconocimiento, ${nuevasFaltas.length} falta(s), ${nuevasVacaciones.length} vacacione(s), ${nuevasLicencias.length} licencia(s)/certificado(s), ${nuevasBuenasPracticas.length} estrella(s).`);
 }
 
 document.getElementById('btnRestaurar').addEventListener('click', () => document.getElementById('inputRestaurar').click());
