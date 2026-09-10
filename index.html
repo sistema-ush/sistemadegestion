@@ -467,7 +467,9 @@
         <option value="Individual">Individual</option>
         <option value="Área técnica">Área técnica</option>
         <option value="Área de ventas">Área de ventas</option>
-        <option value="De coordinación">De coordinación</option>
+        <option value="De coordinación">Coordinación</option>
+        <option value="Seguimiento correctivo">Seguimiento correctivo</option>
+        <option value="Seguimiento de ingreso">Seguimiento de ingreso</option>
       </select>
       <select id="fEstadoInf">
         <option value="">Con o sin evaluación</option>
@@ -921,7 +923,9 @@
           <option value="Individual">Individual</option>
           <option value="Área técnica">Área técnica</option>
           <option value="Área de ventas">Área de ventas</option>
-          <option value="De coordinación">De coordinación</option>
+          <option value="De coordinación">Coordinación</option>
+          <option value="Seguimiento correctivo">Seguimiento correctivo</option>
+          <option value="Seguimiento de ingreso">Seguimiento de ingreso</option>
         </select>
       </div>
       <div class="section-label perf">Semáforo: condiciones generales de la persona, personales o laborales (opcional)</div>
@@ -1203,6 +1207,7 @@ function fmtFecha(f) {
   return d + '/' + m + '/' + y;
 }
 function areaLabel(area) {
+  if (area === 'De coordinación') return 'Coordinación';
   return area; // ya viene con el texto final (tipo de reunión de texto libre/fijo)
 }
 function areaClass(area) {
@@ -1212,6 +1217,8 @@ function areaClass(area) {
     'Área técnica': 'area-tecnica',
     'Área de ventas': 'area-comercial',
     'De coordinación': 'tipo-licencia',
+    'Seguimiento correctivo': 'tipo-medico',
+    'Seguimiento de ingreso': 'area-tecnica',
     'Automático (sistema)': 'area-general',
     // valores viejos, por compatibilidad con informes cargados antes de estos cambios de tipos
     'De área': 'area-comercial', 'De equipo': 'area-tecnica', 'Capacitación': 'tipo-licencia', 'Seguimiento de objetivos': 'tipo-medico',
@@ -1985,7 +1992,7 @@ document.getElementById('btnGuardarInf').addEventListener('click', async (ev) =>
   const resumen = document.getElementById('iResumen').value.trim();
   const empleadoId = document.getElementById('iEmpleado').value || null;
   const estado = document.getElementById('iEstado').value || null;
-  const requiereEmpleado = area === 'Individual';
+  const requiereEmpleado = area === 'Individual' || area === 'Seguimiento correctivo' || area === 'Seguimiento de ingreso';
   const errEl = document.getElementById('formErrorInf');
   if (!fecha || !gimnasio || !area || !resumen) {
     errEl.textContent = 'Completa fecha, gimnasio, tipo y resumen antes de guardar.';
