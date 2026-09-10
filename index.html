@@ -367,7 +367,7 @@
   <button class="tab-btn active" data-tab="empleados">Empleados</button>
   <button class="tab-btn" data-tab="informes">Reuniones</button>
   <button class="tab-btn" data-tab="evaluaciones">Evaluaciones de desempeño</button>
-  <button class="tab-btn" data-tab="faltas">Faltas</button>
+  <button class="tab-btn" data-tab="faltas">Novedades</button>
   <button class="tab-btn" data-tab="reconocimiento">Reconocimiento</button>
   <button class="tab-btn" data-tab="vacaciones">Vacaciones</button>
   <button class="tab-btn" data-tab="licencias">Licencias y Certificados</button>
@@ -576,7 +576,7 @@
         <option value="C3">Sep–Dic</option>
       </select>
       <input type="text" id="fBuscarFal" placeholder="Buscar por empleado...">
-      <button class="btn" id="btnNuevoFal">+ Registrar falta</button>
+      <button class="btn" id="btnNuevoFal">+ Registrar novedad</button>
     </div>
     <div class="status" id="statusFal">Cargando...</div>
     <div class="grid" id="listaFal"></div>
@@ -756,7 +756,7 @@
 
 <div class="overlay" id="overlayFal">
   <div class="modal">
-    <h2 id="modalTitleFal">Nueva falta</h2>
+    <h2 id="modalTitleFal">Nueva novedad</h2>
     <form id="formFal">
       <div class="form-row">
         <label for="faEmpleado">Empleado</label>
@@ -789,9 +789,9 @@
       <div class="form-row">
         <label for="faNumero">N° de falta este mes</label>
         <select id="faNumero">
-          <option value="1">1ra falta del mes → 🟡 Amarillo</option>
-          <option value="2">2da falta del mes → 🟡 Amarillo</option>
-          <option value="3">3ra falta o más del mes → 🔴 Rojo</option>
+          <option value="1">1ra falta del mes</option>
+          <option value="2">2da falta del mes</option>
+          <option value="3">3ra falta o más del mes</option>
         </select>
         <p style="font-size:12px; color: var(--muted); margin: 4px 0 0;">Se sugiere solo, según cuántas faltas ya tiene este empleado este mes — cambialo si no corresponde.</p>
       </div>
@@ -2594,7 +2594,7 @@ function renderFaltas() {
   document.getElementById('statusFal').textContent = filtradas.length + ' de ' + faltas.length + ' falta(s)';
   const lista = document.getElementById('listaFal');
   if (filtradas.length === 0) {
-    lista.innerHTML = '<div class="empty">No hay faltas registradas que coincidan.<br>Cargá la primera con "+ Registrar falta".</div>';
+    lista.innerHTML = '<div class="empty">No hay novedades registradas que coincidan.<br>Cargá la primera con "+ Registrar novedad".</div>';
     return;
   }
 
@@ -2628,7 +2628,7 @@ function actualizarCampoOtroFal() {
 function abrirModalFal(f) {
   editingFalId = f ? f.id : null;
   poblarSelectEmpleadosFal();
-  document.getElementById('modalTitleFal').textContent = f ? 'Editar falta' : 'Nueva falta';
+  document.getElementById('modalTitleFal').textContent = f ? 'Editar novedad' : 'Nueva novedad';
   document.getElementById('faEmpleado').value = f ? f.empleadoId : '';
   document.getElementById('faFecha').value = f ? f.fecha : new Date().toISOString().slice(0,10);
   const opcionesFijas = ['Puntualidad','Uso del teléfono','Imagen / uniforme','Atención al cliente','Compromiso'];
