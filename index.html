@@ -542,6 +542,12 @@
 
     <div class="toolbar">
       <input type="date" id="fFechaObs" title="Filtrar por día">
+      <select id="fGimnasioObs">
+        <option value="">Todos los gimnasios</option>
+        <option value="Active">Active</option>
+        <option value="IM Studio">IM Studio</option>
+        <option value="Impacto">Impacto</option>
+      </select>
       <button class="btn secondary small" id="btnLimpiarFechaObs" type="button">Ver todos los días</button>
       <button class="btn" id="btnNuevoObs">+ Nueva observación</button>
     </div>
@@ -1083,6 +1089,15 @@
           <label for="obsFecha">Fecha</label>
           <input type="date" id="obsFecha" required>
         </div>
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <label for="obsGimnasio">Gimnasio (opcional)</label>
+        <select id="obsGimnasio">
+          <option value="">Sin especificar</option>
+          <option value="Active">Active</option>
+          <option value="IM Studio">IM Studio</option>
+          <option value="Impacto">Impacto</option>
+        </select>
       </div>
       <div class="form-row" style="margin-top:12px;">
         <label for="obsTexto">Observación</label>
@@ -2455,6 +2470,7 @@ document.querySelectorAll('#subTabsObs .sub-tab-btn').forEach(btn => {
 });
 
 document.getElementById('fFechaObs').addEventListener('change', renderObservaciones);
+document.getElementById('fGimnasioObs').addEventListener('change', renderObservaciones);
 document.getElementById('btnLimpiarFechaObs').addEventListener('click', () => {
   document.getElementById('fFechaObs').value = '';
   renderObservaciones();
@@ -2465,6 +2481,7 @@ function abrirModalObs(obs) {
   document.getElementById('modalTitleObs').textContent = obs ? 'Editar observación' : 'Nueva observación';
   document.getElementById('obsCoordinador').value = obs ? obs.coordinador : coordinadorActivoObs;
   document.getElementById('obsFecha').value = obs ? obs.fecha : new Date().toISOString().slice(0,10);
+  document.getElementById('obsGimnasio').value = obs ? (obs.gimnasio || '') : '';
   document.getElementById('obsTexto').value = obs ? obs.texto : '';
   document.getElementById('formErrorObs').style.display = 'none';
   document.getElementById('overlayObs').classList.add('open');
@@ -2493,6 +2510,7 @@ document.getElementById('btnGuardarObs').addEventListener('click', async (ev) =>
   ev.preventDefault();
   const coordinador = document.getElementById('obsCoordinador').value;
   const fecha = document.getElementById('obsFecha').value;
+  const gimnasio = document.getElementById('obsGimnasio').value;
   const texto = document.getElementById('obsTexto').value.trim();
   const errEl = document.getElementById('formErrorObs');
 
@@ -2505,7 +2523,7 @@ document.getElementById('btnGuardarObs').addEventListener('click', async (ev) =>
 
   const data = {
     id: editingObsId || (Date.now().toString(36) + Math.random().toString(36).slice(2,7)),
-    coordinador, fecha, texto
+    coordinador, fecha, gimnasio, texto
   };
 
   if (editingObsId) { observaciones = observaciones.map(o => o.id === editingObsId ? data : o); }
@@ -2523,8 +2541,10 @@ document.getElementById('btnGuardarObs').addEventListener('click', async (ev) =>
 
 function renderObservaciones() {
   const fechaFiltro = document.getElementById('fFechaObs').value;
+  const gimnasioFiltro = document.getElementById('fGimnasioObs').value;
   let filtradas = observaciones.filter(o => o.coordinador === coordinadorActivoObs);
   if (fechaFiltro) filtradas = filtradas.filter(o => o.fecha === fechaFiltro);
+  if (gimnasioFiltro) filtradas = filtradas.filter(o => o.gimnasio === gimnasioFiltro);
   filtradas.sort((a,b) => b.fecha.localeCompare(a.fecha));
 
   document.getElementById('statusObs').textContent = filtradas.length + ' observación(es) de ' + coordinadorActivoObs;
@@ -2537,6 +2557,7 @@ function renderObservaciones() {
     <div class="card">
       <div class="card-head">
         <div>
+          ${o.gimnasio ? `<span class="tag ${claseGimnasio(o.gimnasio)}">${escapeHtml(o.gimnasio)}</span>` : ''}
           <p class="name">${fmtFecha(o.fecha)}</p>
         </div>
         <div class="card-actions">
