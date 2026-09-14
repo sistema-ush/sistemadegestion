@@ -278,6 +278,9 @@
   .legend-item p { margin: 0; color: var(--muted); line-height: 1.4; }
 
   .rubrica { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 1.5rem; font-size: 13px; }
+  .sub-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .sub-tab-btn { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; padding: 8px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 20px; color: var(--muted); cursor: pointer; }
+  .sub-tab-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .rubrica-toggle { font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
   .rubrica-body { display: none; margin-top: 12px; }
   .rubrica-body.open { display: block; }
@@ -372,6 +375,7 @@
   <button class="tab-btn" data-tab="vacaciones">Vacaciones</button>
   <button class="tab-btn" data-tab="licencias">Licencias y Certificados</button>
   <button class="tab-btn" data-tab="buenaspracticas">⭐ Sistema de estrellas<span class="badge-nuevo" id="badgeBp" style="display:none;"></span></button>
+  <button class="tab-btn" data-tab="observaciones">📝 Observaciones</button>
 </div>
 <div class="lock-screen" id="lockScreen">
   <div class="lock-box">
@@ -402,8 +406,6 @@
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
       <button class="btn" id="btnExportar" style="font-size:12px; padding:6px 12px;">⬇ Exportar Excel</button>
-      <button class="btn secondary" id="btnCombinar" style="font-size:12px; padding:6px 12px;">🔀 Combinar Excel (sin duplicar)</button>
-      <input type="file" id="inputCombinar" accept=".xlsx,.xls" style="display:none;">
       <button class="btn secondary" id="btnRestaurar" style="font-size:12px; padding:6px 12px;">♻ Restaurar todo</button>
       <input type="file" id="inputRestaurar" accept=".xlsx,.xls" style="display:none;">
     </div>
@@ -527,6 +529,24 @@
     </div>
     <div class="status" id="statusBp">Cargando...</div>
     <div id="listaBp"></div>
+  </div>
+
+  <div class="tab-panel" id="panel-observaciones">
+
+    <div class="sub-tabs" id="subTabsObs">
+      <button class="sub-tab-btn active" data-coord="Flor">Flor</button>
+      <button class="sub-tab-btn" data-coord="Mica">Mica</button>
+      <button class="sub-tab-btn" data-coord="Martín">Martín</button>
+      <button class="sub-tab-btn" data-coord="Durán">Durán</button>
+    </div>
+
+    <div class="toolbar">
+      <input type="date" id="fFechaObs" title="Filtrar por día">
+      <button class="btn secondary small" id="btnLimpiarFechaObs" type="button">Ver todos los días</button>
+      <button class="btn" id="btnNuevoObs">+ Nueva observación</button>
+    </div>
+    <div class="status" id="statusObs">Cargando...</div>
+    <div id="listaObs"></div>
   </div>
 
   <div class="tab-panel" id="panel-reconocimiento">
@@ -1045,6 +1065,38 @@
   </div>
 </div>
 
+<div class="overlay" id="overlayObs">
+  <div class="modal">
+    <h3 id="modalTitleObs">Nueva observación</h3>
+    <form id="formObs">
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="obsCoordinador">Coordinador/a</label>
+          <select id="obsCoordinador" required>
+            <option value="Flor">Flor</option>
+            <option value="Mica">Mica</option>
+            <option value="Martín">Martín</option>
+            <option value="Durán">Durán</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="obsFecha">Fecha</label>
+          <input type="date" id="obsFecha" required>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <label for="obsTexto">Observación</label>
+        <textarea id="obsTexto" rows="5" required></textarea>
+      </div>
+      <div class="error-text" id="formErrorObs" style="display:none;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" id="btnCancelarObs">Cancelar</button>
+        <button type="button" class="btn" id="btnGuardarObs">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Firebase: conexión a la base de datos compartida -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -1132,6 +1184,9 @@ let faltas = [];
 let vacaciones = [];
 let licencias = [];
 let buenasPracticas = [];
+let observaciones = [];
+let editingObsId = null;
+let coordinadorActivoObs = 'Flor';
 let ultimaVistaBp = 0;
 let idsConocidosBp = new Set();
 let editingEmpId = null;
@@ -1148,6 +1203,7 @@ const K_FAL = 'faltas-data';
 const K_VAC = 'vacaciones-data';
 const K_LIC = 'licencias-data';
 const K_BP = 'buenas-practicas-data';
+const K_OBS = 'observaciones-data';
 const K_BP_VISTA = 'buenas-practicas-ultima-vista';
 const trimLabels = { C1: 'Ene–Abr', C2: 'May–Ago', C3: 'Sep–Dic' };
 const semLabels = { verde: '🟢 Verde — Todo bien', amarillo: '🟡 Amarillo — Situación a seguir', rojo: '🔴 Rojo — Situación seria', 'sin-evaluar': 'Sin evaluar' };
@@ -1335,6 +1391,10 @@ async function cargarTodo() {
     const rBpVista = await window.storage.get(K_BP_VISTA, true);
     ultimaVistaBp = rBpVista ? JSON.parse(rBpVista.value) : 0;
   } catch (e) { ultimaVistaBp = 0; }
+  try {
+    const rObs = await window.storage.get(K_OBS, true);
+    observaciones = rObs ? JSON.parse(rObs.value) : [];
+  } catch (e) { observaciones = []; }
   idsConocidosBp = new Set(buenasPracticas.map(b => b.id));
   poblarSelectEmpleados();
   poblarSelectEmpleadosFal();
@@ -1354,6 +1414,7 @@ async function cargarTodo() {
   renderVacaciones();
   renderLicencias();
   renderBuenasPracticas();
+  renderObservaciones();
   actualizarBadgeBp();
   iniciarListenerBp();
 }
@@ -1384,6 +1445,10 @@ async function guardarLicencias() {
 }
 async function guardarBuenasPracticas() {
   try { await window.storage.set(K_BP, JSON.stringify(buenasPracticas), true); return true; }
+  catch (e) { customAlert('No se pudo guardar. Intenta de nuevo.'); return false; }
+}
+async function guardarObservaciones() {
+  try { await window.storage.set(K_OBS, JSON.stringify(observaciones), true); return true; }
   catch (e) { customAlert('No se pudo guardar. Intenta de nuevo.'); return false; }
 }
 
@@ -2379,6 +2444,112 @@ function renderRankingsBp() {
   renderRankingBpEnContenedor('rankingBpDadas', 'dadaPorId');
 }
 
+/* ---------- OBSERVACIONES ---------- */
+document.querySelectorAll('#subTabsObs .sub-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#subTabsObs .sub-tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    coordinadorActivoObs = btn.dataset.coord;
+    renderObservaciones();
+  });
+});
+
+document.getElementById('fFechaObs').addEventListener('change', renderObservaciones);
+document.getElementById('btnLimpiarFechaObs').addEventListener('click', () => {
+  document.getElementById('fFechaObs').value = '';
+  renderObservaciones();
+});
+
+function abrirModalObs(obs) {
+  editingObsId = obs ? obs.id : null;
+  document.getElementById('modalTitleObs').textContent = obs ? 'Editar observación' : 'Nueva observación';
+  document.getElementById('obsCoordinador').value = obs ? obs.coordinador : coordinadorActivoObs;
+  document.getElementById('obsFecha').value = obs ? obs.fecha : new Date().toISOString().slice(0,10);
+  document.getElementById('obsTexto').value = obs ? obs.texto : '';
+  document.getElementById('formErrorObs').style.display = 'none';
+  document.getElementById('overlayObs').classList.add('open');
+}
+function cerrarModalObs() {
+  document.getElementById('overlayObs').classList.remove('open');
+  document.getElementById('formObs').reset();
+  editingObsId = null;
+}
+function editarObs(id) {
+  const obs = observaciones.find(o => o.id === id);
+  if (obs) abrirModalObs(obs);
+}
+async function eliminarObs(id) {
+  if (!(await customConfirm('¿Eliminar esta observación? Esta acción no se puede deshacer.'))) return;
+  observaciones = observaciones.filter(o => o.id !== id);
+  const ok = await guardarObservaciones();
+  if (ok) renderObservaciones();
+}
+
+document.getElementById('btnNuevoObs').addEventListener('click', () => abrirModalObs(null));
+document.getElementById('btnCancelarObs').addEventListener('click', cerrarModalObs);
+document.getElementById('overlayObs').addEventListener('click', (ev) => { if (ev.target.id === 'overlayObs') cerrarModalObs(); });
+
+document.getElementById('btnGuardarObs').addEventListener('click', async (ev) => {
+  ev.preventDefault();
+  const coordinador = document.getElementById('obsCoordinador').value;
+  const fecha = document.getElementById('obsFecha').value;
+  const texto = document.getElementById('obsTexto').value.trim();
+  const errEl = document.getElementById('formErrorObs');
+
+  if (!coordinador || !fecha || !texto) {
+    errEl.textContent = 'Completá coordinador/a, fecha y la observación antes de guardar.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+
+  const data = {
+    id: editingObsId || (Date.now().toString(36) + Math.random().toString(36).slice(2,7)),
+    coordinador, fecha, texto
+  };
+
+  if (editingObsId) { observaciones = observaciones.map(o => o.id === editingObsId ? data : o); }
+  else { observaciones.push(data); }
+
+  const ok = await guardarObservaciones();
+  if (ok) {
+    cerrarModalObs();
+    // si la nota se guardó bajo un coordinador distinto al que estás mirando, saltamos a esa pestaña
+    coordinadorActivoObs = coordinador;
+    document.querySelectorAll('#subTabsObs .sub-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.coord === coordinador));
+    renderObservaciones();
+  }
+});
+
+function renderObservaciones() {
+  const fechaFiltro = document.getElementById('fFechaObs').value;
+  let filtradas = observaciones.filter(o => o.coordinador === coordinadorActivoObs);
+  if (fechaFiltro) filtradas = filtradas.filter(o => o.fecha === fechaFiltro);
+  filtradas.sort((a,b) => b.fecha.localeCompare(a.fecha));
+
+  document.getElementById('statusObs').textContent = filtradas.length + ' observación(es) de ' + coordinadorActivoObs;
+  const lista = document.getElementById('listaObs');
+  if (filtradas.length === 0) {
+    lista.innerHTML = '<div class="empty">No hay observaciones que coincidan.<br>Cargá la primera con "+ Nueva observación".</div>';
+    return;
+  }
+  lista.innerHTML = filtradas.map(o => `
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <p class="name">${fmtFecha(o.fecha)}</p>
+        </div>
+        <div class="card-actions">
+          <button class="btn secondary small" onclick="editarObs('${o.id}')">Editar</button>
+          <button class="btn danger small" onclick="eliminarObs('${o.id}')">Eliminar</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <p>${escapeHtml(o.texto)}</p>
+      </div>
+    </div>`).join('');
+}
+
 /* ---------- RECONOCIMIENTO (vista informativa) ---------- */
 function rangoTrimestre(anio, trimestre) {
   const rangos = { C1: ['01','04','30'], C2: ['05','08','31'], C3: ['09','12','31'] };
@@ -3327,211 +3498,6 @@ async function importarExcelEmpleados(ev) {
 document.getElementById('btnDescargarPlantilla').addEventListener('click', descargarPlantilla);
 document.getElementById('btnImportarExcel').addEventListener('click', () => document.getElementById('inputImportarExcel').click());
 document.getElementById('inputImportarExcel').addEventListener('change', importarExcelEmpleados);
-
-/* ---------- COMBINAR EXCEL SIN DUPLICAR ---------- */
-async function combinarDesdeExcel(ev) {
-  const file = ev.target.files[0];
-  if (!file) return;
-
-  if (!(await customConfirm('Esto va a AGREGAR lo que falte de este Excel a lo que ya está cargado, sin duplicar ni borrar nada existente. Usalo solo con un archivo exportado desde esta misma herramienta. ¿Continuar?'))) {
-    ev.target.value = '';
-    return;
-  }
-
-  let wb;
-  try {
-    const data = await file.arrayBuffer();
-    wb = XLSX.read(data, { type: 'array', cellDates: true });
-  } catch (err) {
-    await customAlert('No se pudo leer el archivo. Verificá que sea un Excel (.xlsx) válido, exportado desde esta herramienta.');
-    ev.target.value = '';
-    return;
-  }
-
-  const leerHoja = (nombre) => {
-    const ws = wb.Sheets[nombre];
-    return ws ? XLSX.utils.sheet_to_json(ws, { defval: '' }) : [];
-  };
-  const dnisNormalizados = (s) => (s || '').toString().replace(/[.\s-]/g, '');
-  const contadores = { empleados: 0, informes: 0, reconocimientos: 0, faltas: 0, vacaciones: 0, licencias: 0, buenasPracticas: 0 };
-
-  // 1. EMPLEADOS — se agregan los que no coincidan por DNI con uno ya cargado.
-  leerHoja('Empleados').forEach((row, idx) => {
-    const nombre = (row['Nombre y apellido'] || '').toString().trim();
-    const gimnasio = (row['Gimnasio'] || '').toString().trim();
-    const dni = (row['DNI'] || '').toString().trim();
-    if (!nombre) return;
-    const yaExiste = dni && empleados.some(e => dnisNormalizados(e.dni) === dnisNormalizados(dni) && dnisNormalizados(dni) !== '');
-    if (yaExiste) return;
-
-    const onboarding = {};
-    ONBOARDING_TAREAS.forEach(t => {
-      const fecha = parseFechaExcel(row['Onboarding: ' + t.label]);
-      onboarding[t.id] = { hecha: !!fecha, fecha: fecha || '' };
-    });
-    empleados.push({
-      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
-      nombre, gimnasio,
-      area: (row['Área / rol'] || '').toString().trim(),
-      estadoLaboral: (row['Estado laboral'] || 'Activo').toString().trim() || 'Activo',
-      fechaDesvinculacion: parseFechaExcel(row['Fecha de desvinculación']),
-      responsable: (row['Responsable de seguimiento'] || '').toString().trim(),
-      dni,
-      cuil: (row['CUIL'] || '').toString().trim(),
-      direccion: (row['Dirección'] || '').toString().trim(),
-      fechaIngreso: parseFechaExcel(row['Fecha de ingreso']),
-      fechaNacimiento: parseFechaExcel(row['Fecha de nacimiento']),
-      telefono: (row['Teléfono'] || '').toString().trim(),
-      contacto: (row['Contacto alternativo'] || '').toString().trim(),
-      emergNombre: (row['Contacto de emergencia'] || '').toString().trim(),
-      emergTelefono: (row['Teléfono de emergencia'] || '').toString().trim(),
-      onboarding
-    });
-    contadores.empleados++;
-  });
-
-  // Mapa nombre(+gimnasio) -> id, construido con los empleados YA combinados (viejos + nuevos).
-  const mapaNombreGimnasioAId = {};
-  empleados.forEach(e => {
-    mapaNombreGimnasioAId[e.nombre + '|' + e.gimnasio] = e.id;
-    if (!(e.nombre in mapaNombreGimnasioAId)) mapaNombreGimnasioAId[e.nombre] = e.id;
-  });
-  const buscarEmpleadoId = (nombre, gimnasio) => {
-    if (!nombre) return null;
-    return mapaNombreGimnasioAId[nombre + '|' + gimnasio] ?? mapaNombreGimnasioAId[nombre] ?? null;
-  };
-
-  // 2. REUNIONES/EVALUACIONES — duplicado = mismo empleado + fecha + tipo + resumen.
-  leerHoja('Reuniones y evaluaciones').forEach((row, idx) => {
-    const fecha = parseFechaExcel(row['Fecha']);
-    const area = (row['Tipo'] || '').toString().trim();
-    const resumen = (row['Resumen'] || '').toString();
-    const empleadoId = buscarEmpleadoId((row['Empleado']||'').toString().trim(), (row['Gimnasio']||'').toString().trim());
-    if (!fecha) return;
-    const yaExiste = informes.some(i => i.fecha === fecha && i.area === area && i.resumen === resumen && i.empleadoId === empleadoId);
-    if (yaExiste) return;
-    informes.push({
-      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
-      fecha, gimnasio: (row['Gimnasio'] || '').toString().trim(), area,
-      empleadoId,
-      participantes: (row['Otros participantes'] || '').toString(),
-      resumen,
-      pendientes: (row['Pendientes'] || '').toString(),
-      estado: (row['Estado asignado'] || '').toString().trim() || null,
-      link: (row['Link'] || '').toString(),
-      puntajeObtenido: row['Puntaje obtenido'] !== undefined && row['Puntaje obtenido'] !== '' ? parseInt(row['Puntaje obtenido'], 10) : undefined,
-      puntajeTotal: row['Puntaje total'] !== undefined && row['Puntaje total'] !== '' ? parseInt(row['Puntaje total'], 10) : undefined
-    });
-    contadores.informes++;
-  });
-
-  // 3. RECONOCIMIENTO — duplicado = mismo empleado + año + cuatrimestre.
-  leerHoja('Reconocimiento').forEach((row, idx) => {
-    const empleadoId = buscarEmpleadoId((row['Empleado']||'').toString().trim(), (row['Gimnasio']||'').toString().trim());
-    const anio = parseInt(row['Año'], 10) || new Date().getFullYear();
-    const trimestre = trimestreDesdeEtiqueta(row['Cuatrimestre'] || row['Trimestre']);
-    if (!empleadoId) return;
-    const yaExiste = reconocimientos.some(r => r.empleadoId === empleadoId && r.anio === anio && r.trimestre === trimestre);
-    if (yaExiste) return;
-    reconocimientos.push({
-      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
-      empleadoId, anio, trimestre,
-      horario: Number(row['Horario']) || 0, estandares: Number(row['Estándares']) || 0,
-      compromiso: Number(row['Compromiso']) || 0, clientes: Number(row['Clientes']) || 0,
-      nota: (row['Nota'] || '').toString()
-    });
-    contadores.reconocimientos++;
-  });
-
-  // 4. FALTAS — duplicado = mismo empleado + fecha + aspecto.
-  leerHoja('Faltas').forEach((row, idx) => {
-    const fecha = parseFechaExcel(row['Fecha']);
-    const empleadoId = buscarEmpleadoId((row['Empleado']||'').toString().trim(), (row['Gimnasio']||'').toString().trim());
-    const aspecto = (row['Aspecto'] || '').toString().trim();
-    if (!fecha || !empleadoId) return;
-    const yaExiste = faltas.some(f => f.fecha === fecha && f.empleadoId === empleadoId && f.aspecto === aspecto);
-    if (yaExiste) return;
-    faltas.push({
-      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
-      fecha, empleadoId, aspecto,
-      numero: parseInt(row['N° de falta del mes'], 10) || 1
-    });
-    contadores.faltas++;
-  });
-
-  // 5. VACACIONES — duplicado = mismo empleado + fecha inicio + fecha fin.
-  leerHoja('Vacaciones').forEach((row, idx) => {
-    const empleadoId = buscarEmpleadoId((row['Empleado']||'').toString().trim(), (row['Gimnasio']||'').toString().trim());
-    const fechaInicio = parseFechaExcel(row['Fecha inicio']);
-    const fechaFin = parseFechaExcel(row['Fecha fin']);
-    if (!empleadoId || !fechaInicio || !fechaFin) return;
-    const yaExiste = vacaciones.some(v => v.empleadoId === empleadoId && v.fechaInicio === fechaInicio && v.fechaFin === fechaFin);
-    if (yaExiste) return;
-    vacaciones.push({
-      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
-      empleadoId,
-      fechaSolicitud: parseFechaExcel(row['Fecha de solicitud']),
-      fechaInicio, fechaFin,
-      estado: (row['Estado'] || 'Pendiente').toString().trim() || 'Pendiente'
-    });
-    contadores.vacaciones++;
-  });
-
-  // 6. LICENCIAS — duplicado = mismo empleado + fecha inicio + fecha fin.
-  leerHoja('Licencias y Certificados').forEach((row, idx) => {
-    const empleadoId = buscarEmpleadoId((row['Empleado']||'').toString().trim(), (row['Gimnasio']||'').toString().trim());
-    const fechaInicio = parseFechaExcel(row['Desde']);
-    const fechaFin = parseFechaExcel(row['Hasta']);
-    if (!empleadoId || !fechaInicio || !fechaFin) return;
-    const yaExiste = licencias.some(l => l.empleadoId === empleadoId && l.fechaInicio === fechaInicio && l.fechaFin === fechaFin);
-    if (yaExiste) return;
-    licencias.push({
-      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
-      empleadoId,
-      tipo: (row['Tipo'] || '').toString().trim(),
-      fechaPresentacion: parseFechaExcel(row['Fecha de presentación']),
-      fechaInicio, fechaFin,
-      nota: (row['Nota'] || '').toString()
-    });
-    contadores.licencias++;
-  });
-
-  // 7. BUENAS PRÁCTICAS — duplicado = mismo dador + receptor + fecha + nota.
-  leerHoja('Buenas prácticas').forEach((row, idx) => {
-    const dadorTexto = (row['Quién la dio'] || '').toString().trim();
-    const dadaPorId = dadorTexto.toLowerCase() === 'coordinación' ? 'coordinacion' : buscarEmpleadoId(dadorTexto, '');
-    const receptorId = buscarEmpleadoId((row['Quién la recibió']||'').toString().trim(), (row['Gimnasio (de quién recibió)']||'').toString().trim());
-    const fecha = parseFechaExcel(row['Fecha']);
-    const nota = (row['Nota'] || '').toString();
-    if (!fecha || !dadaPorId || !receptorId) return;
-    const yaExiste = buenasPracticas.some(b => b.fecha === fecha && b.dadaPorId === dadaPorId && b.receptorId === receptorId && b.nota === nota);
-    if (yaExiste) return;
-    buenasPracticas.push({
-      id: 'merge-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7) + idx,
-      fecha, dadaPorId, receptorId, nota, creadoEn: Date.now()
-    });
-    contadores.buenasPracticas++;
-  });
-
-  await guardarEmpleados();
-  await guardarInformes();
-  await guardarReconocimientos();
-  await guardarFaltas();
-  await guardarVacaciones();
-  await guardarLicencias();
-  await guardarBuenasPracticas();
-
-  poblarSelectEmpleados(); poblarSelectEmpleadosFal(); poblarSelectEmpleadosVac(); poblarSelectEmpleadosLic(); poblarSelectEmpleadosBp();
-  poblarAnios(); poblarAniosFal();
-  renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados(); renderInformes(); renderEvaluaciones();
-  renderReconocimiento(); renderFaltas(); renderVacaciones(); renderLicencias(); renderBuenasPracticas();
-
-  ev.target.value = '';
-  await customAlert(`Se agregó lo que faltaba: ${contadores.empleados} empleado(s), ${contadores.informes} reunión/es, ${contadores.reconocimientos} evaluación/es de reconocimiento, ${contadores.faltas} falta(s), ${contadores.vacaciones} vacacione(s), ${contadores.licencias} licencia(s), ${contadores.buenasPracticas} estrella(s). Todo lo que ya estaba cargado se salteó para no duplicar.`);
-}
-
-document.getElementById('btnCombinar').addEventListener('click', () => document.getElementById('inputCombinar').click());
-document.getElementById('inputCombinar').addEventListener('change', combinarDesdeExcel);
 
 /* ---------- RESTAURAR TODO DESDE EXCEL ---------- */
 function trimestreDesdeEtiqueta(etiqueta) {
