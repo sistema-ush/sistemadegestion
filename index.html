@@ -376,6 +376,7 @@
   <button class="tab-btn" data-tab="licencias">Licencias y Certificados</button>
   <button class="tab-btn" data-tab="buenaspracticas">⭐ Sistema de estrellas<span class="badge-nuevo" id="badgeBp" style="display:none;"></span></button>
   <button class="tab-btn" data-tab="observaciones">📝 Observaciones</button>
+  <button class="tab-btn" data-tab="fichadas">🕐 Fichadas</button>
 </div>
 <div class="lock-screen" id="lockScreen">
   <div class="lock-box">
@@ -553,6 +554,24 @@
     </div>
     <div class="status" id="statusObs">Cargando...</div>
     <div id="listaObs"></div>
+  </div>
+
+  <div class="tab-panel" id="panel-fichadas">
+    <p style="font-size:13px; color: var(--muted); margin: 0 0 12px;">Los ingresos se marcan desde la página del equipo (con DNI). Acá se ven de solo lectura, como referencia.</p>
+    <div class="toolbar">
+      <input type="text" id="fEmpleadoFich" list="listaFichEmpleados" placeholder="Buscar por nombre de empleado...">
+      <datalist id="listaFichEmpleados"></datalist>
+      <select id="fGimnasioFich">
+        <option value="">Todos los gimnasios</option>
+        <option value="Active">Active</option>
+        <option value="IM Studio">IM Studio</option>
+        <option value="Impacto">Impacto</option>
+      </select>
+      <input type="date" id="fFechaFich" title="Filtrar por día">
+      <button class="btn secondary small" id="btnLimpiarFechaFich" type="button">Ver todos los días</button>
+    </div>
+    <div class="status" id="statusFich">Cargando...</div>
+    <div id="listaFich"></div>
   </div>
 
   <div class="tab-panel" id="panel-reconocimiento">
@@ -1200,6 +1219,7 @@ let vacaciones = [];
 let licencias = [];
 let buenasPracticas = [];
 let observaciones = [];
+let fichadas = [];
 let editingObsId = null;
 let coordinadorActivoObs = 'Flor';
 let ultimaVistaBp = 0;
@@ -1219,6 +1239,7 @@ const K_VAC = 'vacaciones-data';
 const K_LIC = 'licencias-data';
 const K_BP = 'buenas-practicas-data';
 const K_OBS = 'observaciones-data';
+const K_FICH = 'fichadas-data';
 const K_BP_VISTA = 'buenas-practicas-ultima-vista';
 const trimLabels = { C1: 'Ene–Abr', C2: 'May–Ago', C3: 'Sep–Dic' };
 const semLabels = { verde: '🟢 Verde — Todo bien', amarillo: '🟡 Amarillo — Situación a seguir', rojo: '🔴 Rojo — Situación seria', 'sin-evaluar': 'Sin evaluar' };
@@ -1410,6 +1431,10 @@ async function cargarTodo() {
     const rObs = await window.storage.get(K_OBS, true);
     observaciones = rObs ? JSON.parse(rObs.value) : [];
   } catch (e) { observaciones = []; }
+  try {
+    const rFich = await window.storage.get(K_FICH, true);
+    fichadas = rFich ? JSON.parse(rFich.value) : [];
+  } catch (e) { fichadas = []; }
   idsConocidosBp = new Set(buenasPracticas.map(b => b.id));
   poblarSelectEmpleados();
   poblarSelectEmpleadosFal();
@@ -1417,6 +1442,7 @@ async function cargarTodo() {
   poblarSelectEmpleadosLic();
   poblarSelectEmpleadosEval();
   poblarSelectEmpleadosBp();
+  poblarSelectEmpleadosFich();
   poblarAnios();
   poblarAniosFal();
   renderDashboard();
@@ -1430,6 +1456,7 @@ async function cargarTodo() {
   renderLicencias();
   renderBuenasPracticas();
   renderObservaciones();
+  renderFichadas();
   actualizarBadgeBp();
   iniciarListenerBp();
 }
@@ -2569,6 +2596,58 @@ function renderObservaciones() {
         <p>${escapeHtml(o.texto)}</p>
       </div>
     </div>`).join('');
+}
+
+/* ---------- FICHADAS (de solo lectura, se marcan desde la página del equipo) ---------- */
+function poblarSelectEmpleadosFich() {
+  const activos = empleados.filter(e => (e.estadoLaboral || 'Activo') === 'Activo');
+  document.getElementById('listaFichEmpleados').innerHTML = activos.map(e => `<option value="${escapeHtml(e.nombre)}">`).join('');
+}
+
+document.getElementById('fEmpleadoFich').addEventListener('input', renderFichadas);
+document.getElementById('fGimnasioFich').addEventListener('change', renderFichadas);
+document.getElementById('fFechaFich').addEventListener('change', renderFichadas);
+document.getElementById('btnLimpiarFechaFich').addEventListener('click', () => {
+  document.getElementById('fFechaFich').value = '';
+  renderFichadas();
+});
+
+function renderFichadas() {
+  const nombreFiltro = document.getElementById('fEmpleadoFich').value.trim().toLowerCase();
+  const gimnasioFiltro = document.getElementById('fGimnasioFich').value;
+  const fechaFiltro = document.getElementById('fFechaFich').value;
+
+  let filtradas = fichadas.filter(f => {
+    if (gimnasioFiltro && f.gimnasio !== gimnasioFiltro) return false;
+    if (fechaFiltro && f.fecha !== fechaFiltro) return false;
+    if (nombreFiltro) {
+      const emp = empleados.find(e => e.id === f.empleadoId);
+      const nombre = emp ? emp.nombre.toLowerCase() : '';
+      if (!nombre.includes(nombreFiltro)) return false;
+    }
+    return true;
+  });
+  filtradas.sort((a,b) => (b.timestampMs || 0) - (a.timestampMs || 0));
+
+  document.getElementById('statusFich').textContent = filtradas.length + ' de ' + fichadas.length + ' ingreso(s)';
+  const lista = document.getElementById('listaFich');
+  if (filtradas.length === 0) {
+    lista.innerHTML = '<div class="empty">No hay ingresos que coincidan.</div>';
+    return;
+  }
+  lista.innerHTML = filtradas.slice(0, 300).map(f => {
+    const emp = empleados.find(e => e.id === f.empleadoId);
+    return `
+      <div class="card">
+        <div class="card-head">
+          <div>
+            <span class="tag ${claseGimnasio(f.gimnasio)}">${escapeHtml(f.gimnasio || '—')}</span>
+            <span class="tag">${escapeHtml(emp ? emp.nombre : 'Empleado eliminado')}</span>
+            <p class="name">${fmtFecha(f.fecha)} · ${escapeHtml(f.hora)}</p>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 /* ---------- RECONOCIMIENTO (vista informativa) ---------- */
