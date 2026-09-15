@@ -134,6 +134,18 @@
 
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin-bottom: 12px; }
+  .list-compact { background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .lcr { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 16px; border-bottom: 1px solid var(--line); flex-wrap: nowrap; }
+  .lcr:last-child { border-bottom: none; }
+  .lcr-main { display: flex; align-items: center; gap: 8px; font-size: 13px; flex-wrap: wrap; }
+  .lcr-main strong { font-weight: 700; }
+  .lcr-muted { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
+  .lcr-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .lcr-obs { padding: 0 16px 12px; font-size: 13px; color: var(--muted); }
+  @media (max-width: 760px) {
+    .lcr { flex-wrap: wrap; }
+    .lcr-main { white-space: normal; }
+  }
 
   #panel-empleados .card { background: #F5F4F1; border-color: #D8D6CC; }
   #panel-empleados .card .name { color: #14161B; }
@@ -624,7 +636,7 @@
       <button class="btn" id="btnNuevoFal">+ Registrar novedad</button>
     </div>
     <div class="status" id="statusFal">Cargando...</div>
-    <div class="grid" id="listaFal"></div>
+    <div id="listaFal"></div>
   </div>
 
   <div class="tab-panel" id="panel-vacaciones">
@@ -839,6 +851,10 @@
           <option value="3">3ra falta o más del mes</option>
         </select>
         <p style="font-size:12px; color: var(--muted); margin: 4px 0 0;">Se sugiere solo, según cuántas faltas ya tiene este empleado este mes — cambialo si no corresponde.</p>
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <label for="faObservacion">Observación (opcional)</label>
+        <textarea id="faObservacion" rows="3" placeholder="Detalle o contexto de lo que pasó..."></textarea>
       </div>
       <div class="error-text" id="formErrorFal" style="display:none;"></div>
       <div class="modal-actions">
@@ -2869,27 +2885,27 @@ function renderFaltas() {
     return;
   }
 
-  lista.innerHTML = filtradas.map(f => {
+  lista.innerHTML = '<div class="list-compact">' + filtradas.map(f => {
     const emp = empleados.find(e => e.id === f.empleadoId);
     const nombre = emp ? emp.nombre : 'Empleado eliminado';
     const gimnasio = emp ? emp.gimnasio : '—';
     const numero = f.numero || faltasDelMes(f.empleadoId, f.fecha).length;
     return `
-    <div class="card">
-      <div class="card-head">
-        <div>
-          <span class="tag ${claseGimnasio(gimnasio)}">${escapeHtml(gimnasio)}</span>
-          <span class="tag area-coordinacion">${escapeHtml(f.aspecto)}</span>
-          <p class="name">${escapeHtml(nombre)}</p>
-          <p class="role">${fmtFecha(f.fecha)} · ${numero}ª falta del mes</p>
-        </div>
+    <div class="lcr">
+      <div class="lcr-main">
+        <span class="tag ${claseGimnasio(gimnasio)}">${escapeHtml(gimnasio)}</span>
+        <span class="tag area-coordinacion">${escapeHtml(f.aspecto)}</span>
+        <strong>${escapeHtml(nombre)}</strong>
+        <span class="lcr-muted">${fmtFecha(f.fecha)} · ${numero}ª falta del mes</span>
+        ${f.observacion ? `<span class="toggle-link" onclick="toggleBloque('obsfal-${f.id}')">Ver nota</span>` : ''}
       </div>
-      <div class="card-actions">
+      <div class="lcr-actions">
         <button class="btn secondary small" onclick="editarFal('${f.id}')">Editar</button>
         <button class="btn danger small" onclick="eliminarFal('${f.id}')">Eliminar</button>
       </div>
-    </div>`;
-  }).join('');
+    </div>
+    ${f.observacion ? `<div class="lcr-obs" id="obsfal-${f.id}" style="display:none;">${escapeHtml(f.observacion)}</div>` : ''}`;
+  }).join('') + '</div>';
 }
 
 function actualizarCampoOtroFal() {
@@ -2906,6 +2922,7 @@ function abrirModalFal(f) {
   const esOtro = f && !opcionesFijas.includes(f.aspecto);
   document.getElementById('faAspecto').value = f ? (esOtro ? 'Otro' : f.aspecto) : '';
   document.getElementById('faOtroTexto').value = f && esOtro ? f.aspecto : '';
+  document.getElementById('faObservacion').value = f ? (f.observacion || '') : '';
   document.getElementById('formErrorFal').style.display = 'none';
   actualizarCampoOtroFal();
   actualizarSugerenciaNumero();
@@ -2930,7 +2947,7 @@ function editarFal(id) {
   if (f) abrirModalFal(f);
 }
 async function eliminarFal(id) {
-  if (!(await customConfirm('¿Eliminar esta falta? Esta acción no se puede deshacer (el semáforo ya aplicado no se revierte automáticamente).'))) return;
+  if (!(await customConfirm('¿Eliminar esta novedad? Esta acción no se puede deshacer.'))) return;
   faltas = faltas.filter(x => x.id !== id);
   const ok = await guardarFaltas();
   if (ok) { poblarAniosFal(); renderFaltas(); }
@@ -2968,7 +2985,8 @@ document.getElementById('btnGuardarFal').addEventListener('click', async (ev) =>
 
   const data = {
     id: editingFalId || (Date.now().toString(36) + Math.random().toString(36).slice(2,7)),
-    empleadoId, fecha, aspecto, numero
+    empleadoId, fecha, aspecto, numero,
+    observacion: document.getElementById('faObservacion').value.trim()
   };
 
   if (editingFalId) { faltas = faltas.map(x => x.id === editingFalId ? data : x); }
@@ -3440,7 +3458,7 @@ function exportarTodo() {
 
   const hojaFaltas = faltas.map(f => {
     const emp = empleados.find(e => e.id === f.empleadoId);
-    return { 'Fecha': f.fecha, 'Empleado': emp ? emp.nombre : '', 'Gimnasio': emp ? emp.gimnasio : '', 'Aspecto': f.aspecto, 'N° de falta del mes': f.numero || '' };
+    return { 'Fecha': f.fecha, 'Empleado': emp ? emp.nombre : '', 'Gimnasio': emp ? emp.gimnasio : '', 'Aspecto': f.aspecto, 'N° de falta del mes': f.numero || '', 'Observación': f.observacion || '' };
   });
   XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hojaFaltas), 'Faltas');
 
@@ -3707,7 +3725,8 @@ async function restaurarTodo(ev) {
     fecha: parseFechaExcel(row['Fecha']),
     empleadoId: buscarEmpleadoId((row['Empleado']||'').toString().trim(), (row['Gimnasio']||'').toString().trim()),
     aspecto: (row['Aspecto'] || '').toString().trim(),
-    numero: parseInt(row['N° de falta del mes'], 10) || 1
+    numero: parseInt(row['N° de falta del mes'], 10) || 1,
+    observacion: (row['Observación'] || '').toString()
   })).filter(f => f.fecha && f.empleadoId);
 
   const nuevasVacaciones = leerHoja('Vacaciones').map((row, idx) => ({
