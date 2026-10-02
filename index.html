@@ -141,7 +141,7 @@
   .lcr-main strong { font-weight: 700; }
   .lcr-muted { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
   .lcr-actions { display: flex; gap: 6px; flex-shrink: 0; }
-  .lcr-obs { padding: 0 16px 12px; font-size: 13px; color: var(--muted); }
+  .lcr-obs { padding: 0 16px 12px; font-size: 13px; color: var(--muted); white-space: pre-line; }
   @media (max-width: 760px) {
     .lcr { flex-wrap: wrap; }
     .lcr-main { white-space: normal; }
@@ -202,7 +202,7 @@
   .section-label.perf { color: var(--teal); }
 
   .card-body { margin-top: 10px; font-size: 14px; }
-  .card-body p { margin: 0 0 8px; }
+  .card-body p { margin: 0 0 8px; white-space: pre-line; }
   .field-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
   .pendientes-list { margin: 0; padding-left: 18px; }
 
@@ -293,6 +293,15 @@
   .sub-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
   .sub-tab-btn { font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; padding: 8px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 20px; color: var(--muted); cursor: pointer; }
   .sub-tab-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .config-block { margin-bottom: 22px; }
+  .config-block:last-child { margin-bottom: 0; }
+  .config-block h4 { font-size: 13px; margin: 0 0 8px; font-weight: 700; }
+  .config-block .desc { font-size: 12px; color: var(--muted); margin: 0 0 10px; }
+  .config-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .config-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--paper); border: 1px solid var(--line-strong); border-radius: 20px; padding: 5px 8px 5px 12px; font-size: 12.5px; }
+  .config-chip button { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 15px; line-height: 1; padding: 0 2px; }
+  .config-add-row { display: flex; gap: 8px; }
+  .config-add-row input { flex: 1; }
   .rubrica-toggle { font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
   .rubrica-body { display: none; margin-top: 12px; }
   .rubrica-body.open { display: block; }
@@ -389,6 +398,7 @@
   <button class="tab-btn" data-tab="buenaspracticas">⭐ Sistema de estrellas<span class="badge-nuevo" id="badgeBp" style="display:none;"></span></button>
   <button class="tab-btn" data-tab="vacaciones">Vacaciones</button>
   <button class="tab-btn" data-tab="licencias">Licencias y Certificados</button>
+  <button class="tab-btn" data-tab="gerencia">🔒 Gerencia</button>
 </div>
 <div class="lock-screen" id="lockScreen">
   <div class="lock-box">
@@ -699,6 +709,151 @@
     </div>
     <div class="status" id="statusLic">Cargando...</div>
     <div class="grid" id="listaLic"></div>
+  </div>
+
+  <div class="tab-panel" id="panel-gerencia">
+    <div id="gerenciaLockBox" class="lock-box" style="margin: 40px auto;">
+      <h2>🔒 Gerencia</h2>
+      <p>Acceso restringido. Ingresá la clave para continuar.</p>
+      <p class="lock-error" id="gerenciaLockError">Clave incorrecta. Probá de nuevo.</p>
+      <input type="password" id="gerenciaLockInput" placeholder="Clave" autocomplete="off">
+      <button class="btn" id="gerenciaLockBtn">Ingresar</button>
+    </div>
+
+    <div id="gerenciaContenido" style="display:none;">
+      <div class="rubrica">
+        <div class="rubrica-toggle" onclick="toggleBloque('gerObs-body')">
+          <span>Observaciones</span>
+          <span class="rubrica-chevron">▾</span>
+        </div>
+        <div class="rubrica-body open" id="gerObs-body">
+          <div class="toolbar">
+            <button class="btn" id="btnNuevoGerObs">+ Nueva observación</button>
+          </div>
+          <div class="status" id="statusGerObs">Cargando...</div>
+          <div id="listaGerObs"></div>
+        </div>
+      </div>
+
+      <div class="rubrica" style="margin-top:16px;">
+        <div class="rubrica-toggle" onclick="toggleBloque('gerReu-body')">
+          <span>Reuniones con coordinadores</span>
+          <span class="rubrica-chevron">▾</span>
+        </div>
+        <div class="rubrica-body open" id="gerReu-body">
+          <div class="dashboard" id="dashboardGerencia" style="margin-bottom:16px;"></div>
+          <div class="sub-tabs" id="subTabsGerReu">
+            <button class="sub-tab-btn active" data-coord="Flor">Flor</button>
+            <button class="sub-tab-btn" data-coord="Mica">Mica</button>
+            <button class="sub-tab-btn" data-coord="Martín">Martín</button>
+          </div>
+          <div class="toolbar">
+            <input type="month" id="fMesGerReu" title="Filtrar por mes">
+            <button class="btn secondary small" id="btnLimpiarMesGerReu" type="button">Ver todos los meses</button>
+            <button class="btn" id="btnNuevoGerReu">+ Nueva reunión</button>
+            <button class="btn secondary small" id="btnMigrarGerReu" type="button">🔁 Migrar reuniones individuales con Durán</button>
+          </div>
+          <div class="status" id="statusGerReu">Cargando...</div>
+          <div id="listaGerReu"></div>
+        </div>
+      </div>
+
+      <div class="rubrica" style="margin-top:16px;">
+        <div class="rubrica-toggle" onclick="toggleBloque('gerClave-body')">
+          <span>🔒 Cambiar clave de Gerencia</span>
+          <span class="rubrica-chevron">▾</span>
+        </div>
+        <div class="rubrica-body" id="gerClave-body" style="display:none;">
+          <div class="form-row">
+            <label for="gerClaveActual">Clave actual</label>
+            <input type="password" id="gerClaveActual" autocomplete="off">
+          </div>
+          <div class="form-row" style="margin-top:12px;">
+            <label for="gerClaveNueva">Clave nueva</label>
+            <input type="password" id="gerClaveNueva" autocomplete="off">
+          </div>
+          <div class="form-row" style="margin-top:12px;">
+            <label for="gerClaveNuevaRepetir">Repetir clave nueva</label>
+            <input type="password" id="gerClaveNuevaRepetir" autocomplete="off">
+          </div>
+          <div class="error-text" id="formErrorGerClave" style="display:none;"></div>
+          <p class="success-text" id="successGerClave" style="display:none; color: var(--green, #4CAF7A); font-size:13px; margin-top:4px;">✅ Clave actualizada correctamente.</p>
+          <button class="btn" id="btnCambiarGerClave" style="margin-top:8px;">Guardar nueva clave</button>
+        </div>
+      </div>
+
+      <div class="rubrica" style="margin-top:16px;">
+        <div class="rubrica-toggle" onclick="toggleBloque('gerConfig-body')">
+          <span>⚙️ Configuración del sistema</span>
+          <span class="rubrica-chevron">▾</span>
+        </div>
+        <div class="rubrica-body" id="gerConfig-body" style="display:none;">
+          <p class="desc" style="margin-bottom:18px;">Los cambios acá impactan en todo el sistema al instante, para todos los que lo estén usando.</p>
+
+          <div class="config-block">
+            <h4>Clave de acceso general (la que usan todos para entrar)</h4>
+            <div class="form-grid">
+              <div class="form-row">
+                <label for="configClaveAccesoActual">Clave actual</label>
+                <input type="password" id="configClaveAccesoActual" autocomplete="off">
+              </div>
+              <div class="form-row">
+                <label for="configClaveAccesoNueva">Clave nueva</label>
+                <input type="password" id="configClaveAccesoNueva" autocomplete="off">
+              </div>
+            </div>
+            <div class="error-text" id="formErrorConfigClave" style="display:none;"></div>
+            <p class="success-text" id="successConfigClave" style="display:none; color: var(--green, #4CAF7A); font-size:13px; margin-top:4px;">✅ Clave de acceso actualizada.</p>
+            <button class="btn secondary small" id="btnCambiarClaveAcceso" style="margin-top:6px;">Guardar clave de acceso</button>
+          </div>
+
+          <div class="config-block">
+            <h4>Días para la alerta de "sin reunión"</h4>
+            <p class="desc">Hoy avisa en el dashboard cuando pasan <span id="diasAlertaActualTexto">45</span> días sin cargar una reunión.</p>
+            <div style="display:flex; gap:8px; align-items:center;">
+              <input type="number" id="configDiasAlerta" min="1" style="max-width:100px;">
+              <button class="btn secondary small" id="btnGuardarDiasAlerta">Guardar</button>
+            </div>
+          </div>
+
+          <div class="config-block">
+            <h4>Coordinadores (pestaña Observaciones)</h4>
+            <div class="config-chips" id="chipsCoordinadores"></div>
+            <div class="config-add-row">
+              <input type="text" id="nuevoCoordinador" placeholder="Agregar coordinador/a...">
+              <button class="btn secondary small" id="btnAgregarCoordinador">Agregar</button>
+            </div>
+          </div>
+
+          <div class="config-block">
+            <h4>Coordinadores para reuniones de Gerencia</h4>
+            <div class="config-chips" id="chipsCoordinadoresGerencia"></div>
+            <div class="config-add-row">
+              <input type="text" id="nuevoCoordinadorGerencia" placeholder="Agregar coordinador/a...">
+              <button class="btn secondary small" id="btnAgregarCoordinadorGerencia">Agregar</button>
+            </div>
+          </div>
+
+          <div class="config-block">
+            <h4>Tipos de reunión</h4>
+            <div class="config-chips" id="chipsTiposReunion"></div>
+            <div class="config-add-row">
+              <input type="text" id="nuevoTipoReunion" placeholder="Agregar tipo de reunión...">
+              <button class="btn secondary small" id="btnAgregarTipoReunion">Agregar</button>
+            </div>
+          </div>
+
+          <div class="config-block">
+            <h4>Aspectos de Novedades</h4>
+            <div class="config-chips" id="chipsAspectosFaltas"></div>
+            <div class="config-add-row">
+              <input type="text" id="nuevoAspectoFalta" placeholder="Agregar aspecto...">
+              <button class="btn secondary small" id="btnAgregarAspectoFalta">Agregar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
     </div>
@@ -1147,6 +1302,67 @@
   </div>
 </div>
 
+<div class="overlay" id="overlayGerObs">
+  <div class="modal">
+    <h3 id="modalTitleGerObs">Nueva observación</h3>
+    <form id="formGerObs">
+      <div class="form-row">
+        <label for="gerObsFecha">Fecha</label>
+        <input type="date" id="gerObsFecha" required>
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <label for="gerObsTexto">Observación</label>
+        <textarea id="gerObsTexto" rows="5" required></textarea>
+      </div>
+      <div class="error-text" id="formErrorGerObs" style="display:none;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" id="btnCancelarGerObs">Cancelar</button>
+        <button type="button" class="btn" id="btnGuardarGerObs">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="overlay" id="overlayGerReu">
+  <div class="modal">
+    <h3 id="modalTitleGerReu">Nueva reunión</h3>
+    <form id="formGerReu">
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="gerReuCoordinador">Coordinador/a</label>
+          <select id="gerReuCoordinador" required>
+            <option value="Flor">Flor</option>
+            <option value="Mica">Mica</option>
+            <option value="Martín">Martín</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="gerReuFecha">Fecha</label>
+          <input type="date" id="gerReuFecha" required>
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <label for="gerReuResumen">Resumen de la reunión</label>
+        <textarea id="gerReuResumen" rows="5" required></textarea>
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <label for="gerReuEstado">Semáforo (opcional)</label>
+        <select id="gerReuEstado">
+          <option value="">Sin evaluar</option>
+          <option value="verde">🟢 Verde</option>
+          <option value="amarillo">🟡 Amarillo</option>
+          <option value="rojo">🔴 Rojo</option>
+        </select>
+      </div>
+      <div class="error-text" id="formErrorGerReu" style="display:none;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" id="btnCancelarGerReu">Cancelar</button>
+        <button type="button" class="btn" id="btnGuardarGerReu">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- Firebase: conexión a la base de datos compartida -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -1208,7 +1424,12 @@
 </script>
 
 <script>
-const CLAVE_ACCESO = '0000';
+let CLAVE_ACCESO = '0000';
+let claveGerencia = '9999'; // Valor por defecto hasta que se cargue (o se cambie) desde la base de datos.
+let configCoordinadores = ['Flor', 'Mica', 'Martín', 'Durán'];
+let configCoordinadoresGerencia = ['Flor', 'Mica', 'Martín'];
+let configTiposReunion = ['Individual', 'Área técnica', 'Área de ventas', 'De coordinación', 'Seguimiento correctivo', 'Seguimiento de ingreso'];
+let configAspectosFaltas = ['Puntualidad', 'Uso del teléfono', 'Imagen / uniforme', 'Atención al cliente', 'Compromiso'];
 
 function intentarIngresar() {
   const input = document.getElementById('lockInput');
@@ -1236,6 +1457,12 @@ let licencias = [];
 let buenasPracticas = [];
 let observaciones = [];
 let fichadas = [];
+let gerenciaObservaciones = [];
+let gerenciaReuniones = [];
+let editingGerObsId = null;
+let editingGerReuId = null;
+let coordinadorActivoGerReu = 'Flor';
+let gerenciaDesbloqueada = false;
 let editingObsId = null;
 let coordinadorActivoObs = 'Flor';
 let ultimaVistaBp = 0;
@@ -1256,6 +1483,10 @@ const K_LIC = 'licencias-data';
 const K_BP = 'buenas-practicas-data';
 const K_OBS = 'observaciones-data';
 const K_FICH = 'fichadas-data';
+const K_GER_OBS = 'gerencia-observaciones-data';
+const K_GER_REU = 'gerencia-reuniones-data';
+const K_GER_CLAVE = 'gerencia-clave-data';
+const K_CONFIG = 'config-sistema-data';
 const K_BP_VISTA = 'buenas-practicas-ultima-vista';
 const trimLabels = { C1: 'Ene–Abr', C2: 'May–Ago', C3: 'Sep–Dic' };
 const semLabels = { verde: '🟢 Verde — Todo bien', amarillo: '🟡 Amarillo — Situación a seguir', rojo: '🔴 Rojo — Situación seria', 'sin-evaluar': 'Sin evaluar' };
@@ -1362,7 +1593,7 @@ function antiguedad(fechaIngreso) {
   }
   return '(' + anios + (anios === 1 ? ' año' : ' años') + ')';
 }
-const DIAS_ALERTA = 45;
+let DIAS_ALERTA = 45;
 const ONBOARDING_DESDE = '2026-09-01';
 
 // Evaluación de desempeño de un empleado dentro de un período (se carga una vez por cuatrimestre).
@@ -1451,6 +1682,34 @@ async function cargarTodo() {
     const rFich = await window.storage.get(K_FICH, true);
     fichadas = rFich ? JSON.parse(rFich.value) : [];
   } catch (e) { fichadas = []; }
+  try {
+    const rGerObs = await window.storage.get(K_GER_OBS, true);
+    gerenciaObservaciones = rGerObs ? JSON.parse(rGerObs.value) : [];
+  } catch (e) { gerenciaObservaciones = []; }
+  try {
+    const rGerReu = await window.storage.get(K_GER_REU, true);
+    gerenciaReuniones = rGerReu ? JSON.parse(rGerReu.value) : [];
+  } catch (e) { gerenciaReuniones = []; }
+  try {
+    const rGerClave = await window.storage.get(K_GER_CLAVE, true);
+    if (rGerClave) claveGerencia = JSON.parse(rGerClave.value);
+  } catch (e) { /* se queda con el valor por defecto */ }
+  try {
+    const rConfig = await window.storage.get(K_CONFIG, true);
+    if (rConfig) {
+      const cfg = JSON.parse(rConfig.value);
+      if (cfg.claveAcceso) CLAVE_ACCESO = cfg.claveAcceso;
+      if (cfg.diasAlerta) DIAS_ALERTA = cfg.diasAlerta;
+      if (Array.isArray(cfg.coordinadores) && cfg.coordinadores.length) configCoordinadores = cfg.coordinadores;
+      if (Array.isArray(cfg.coordinadoresGerencia) && cfg.coordinadoresGerencia.length) configCoordinadoresGerencia = cfg.coordinadoresGerencia;
+      if (Array.isArray(cfg.tiposReunion) && cfg.tiposReunion.length) configTiposReunion = cfg.tiposReunion;
+      if (Array.isArray(cfg.aspectosFaltas) && cfg.aspectosFaltas.length) configAspectosFaltas = cfg.aspectosFaltas;
+    }
+  } catch (e) { /* se queda con los valores por defecto */ }
+  poblarOpcionesTiposReunion();
+  poblarOpcionesAspectosFaltas();
+  poblarCoordinadoresObs();
+  poblarCoordinadoresGerReu();
   idsConocidosBp = new Set(buenasPracticas.map(b => b.id));
   poblarSelectEmpleados();
   poblarSelectEmpleadosFal();
@@ -1507,6 +1766,14 @@ async function guardarBuenasPracticas() {
 }
 async function guardarObservaciones() {
   try { await window.storage.set(K_OBS, JSON.stringify(observaciones), true); return true; }
+  catch (e) { customAlert('No se pudo guardar. Intenta de nuevo.'); return false; }
+}
+async function guardarGerenciaObservaciones() {
+  try { await window.storage.set(K_GER_OBS, JSON.stringify(gerenciaObservaciones), true); return true; }
+  catch (e) { customAlert('No se pudo guardar. Intenta de nuevo.'); return false; }
+}
+async function guardarGerenciaReuniones() {
+  try { await window.storage.set(K_GER_REU, JSON.stringify(gerenciaReuniones), true); return true; }
   catch (e) { customAlert('No se pudo guardar. Intenta de nuevo.'); return false; }
 }
 
@@ -2503,13 +2770,13 @@ function renderRankingsBp() {
 }
 
 /* ---------- OBSERVACIONES ---------- */
-document.querySelectorAll('#subTabsObs .sub-tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('#subTabsObs .sub-tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    coordinadorActivoObs = btn.dataset.coord;
-    renderObservaciones();
-  });
+document.getElementById('subTabsObs').addEventListener('click', (ev) => {
+  const btn = ev.target.closest('.sub-tab-btn');
+  if (!btn) return;
+  document.querySelectorAll('#subTabsObs .sub-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  coordinadorActivoObs = btn.dataset.coord;
+  renderObservaciones();
 });
 
 document.getElementById('fFechaObs').addEventListener('change', renderObservaciones);
@@ -2613,6 +2880,453 @@ function renderObservaciones() {
       </div>
     </div>`).join('');
 }
+
+/* ---------- GERENCIA (candado propio, separado del resto) ---------- */
+document.getElementById('gerenciaLockBtn').addEventListener('click', () => {
+  const input = document.getElementById('gerenciaLockInput');
+  const err = document.getElementById('gerenciaLockError');
+  if (input.value === claveGerencia) {
+    gerenciaDesbloqueada = true;
+    document.getElementById('gerenciaLockBox').style.display = 'none';
+    document.getElementById('gerenciaContenido').style.display = 'block';
+    renderGerenciaObservaciones();
+    renderGerenciaReuniones();
+    renderTodosLosChipsConfig();
+    document.getElementById('diasAlertaActualTexto').textContent = DIAS_ALERTA;
+    document.getElementById('configDiasAlerta').value = DIAS_ALERTA;
+  } else {
+    err.style.display = 'block';
+    input.value = '';
+    input.focus();
+  }
+});
+document.getElementById('gerenciaLockInput').addEventListener('keydown', (ev) => {
+  if (ev.key === 'Enter') document.getElementById('gerenciaLockBtn').click();
+});
+
+// --- Observaciones de Gerencia ---
+function abrirModalGerObs(obs) {
+  editingGerObsId = obs ? obs.id : null;
+  document.getElementById('modalTitleGerObs').textContent = obs ? 'Editar observación' : 'Nueva observación';
+  document.getElementById('gerObsFecha').value = obs ? obs.fecha : new Date().toISOString().slice(0,10);
+  document.getElementById('gerObsTexto').value = obs ? obs.texto : '';
+  document.getElementById('formErrorGerObs').style.display = 'none';
+  document.getElementById('overlayGerObs').classList.add('open');
+}
+function cerrarModalGerObs() {
+  document.getElementById('overlayGerObs').classList.remove('open');
+  document.getElementById('formGerObs').reset();
+  editingGerObsId = null;
+}
+function editarGerObs(id) {
+  const obs = gerenciaObservaciones.find(o => o.id === id);
+  if (obs) abrirModalGerObs(obs);
+}
+async function eliminarGerObs(id) {
+  if (!(await customConfirm('¿Eliminar esta observación? Esta acción no se puede deshacer.'))) return;
+  gerenciaObservaciones = gerenciaObservaciones.filter(o => o.id !== id);
+  const ok = await guardarGerenciaObservaciones();
+  if (ok) renderGerenciaObservaciones();
+}
+document.getElementById('btnNuevoGerObs').addEventListener('click', () => abrirModalGerObs(null));
+document.getElementById('btnCancelarGerObs').addEventListener('click', cerrarModalGerObs);
+document.getElementById('overlayGerObs').addEventListener('click', (ev) => { if (ev.target.id === 'overlayGerObs') cerrarModalGerObs(); });
+document.getElementById('btnGuardarGerObs').addEventListener('click', async (ev) => {
+  ev.preventDefault();
+  const fecha = document.getElementById('gerObsFecha').value;
+  const texto = document.getElementById('gerObsTexto').value.trim();
+  const errEl = document.getElementById('formErrorGerObs');
+  if (!fecha || !texto) {
+    errEl.textContent = 'Completá la fecha y la observación antes de guardar.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  const data = { id: editingGerObsId || (Date.now().toString(36) + Math.random().toString(36).slice(2,7)), fecha, texto };
+  if (editingGerObsId) { gerenciaObservaciones = gerenciaObservaciones.map(o => o.id === editingGerObsId ? data : o); }
+  else { gerenciaObservaciones.push(data); }
+  const ok = await guardarGerenciaObservaciones();
+  if (ok) { cerrarModalGerObs(); renderGerenciaObservaciones(); }
+});
+function renderGerenciaObservaciones() {
+  const ordenadas = [...gerenciaObservaciones].sort((a,b) => b.fecha.localeCompare(a.fecha));
+  document.getElementById('statusGerObs').textContent = ordenadas.length + ' observación(es)';
+  const lista = document.getElementById('listaGerObs');
+  if (ordenadas.length === 0) {
+    lista.innerHTML = '<div class="empty">No hay observaciones cargadas.<br>Cargá la primera con "+ Nueva observación".</div>';
+    return;
+  }
+  lista.innerHTML = ordenadas.map(o => `
+    <div class="card">
+      <div class="card-head">
+        <div><p class="name">${fmtFecha(o.fecha)}</p></div>
+        <div class="card-actions">
+          <button class="btn secondary small" onclick="editarGerObs('${o.id}')">Editar</button>
+          <button class="btn danger small" onclick="eliminarGerObs('${o.id}')">Eliminar</button>
+        </div>
+      </div>
+      <div class="card-body"><p>${escapeHtml(o.texto)}</p></div>
+    </div>`).join('');
+}
+
+// --- Reuniones con coordinadores ---
+document.getElementById('subTabsGerReu').addEventListener('click', (ev) => {
+  const btn = ev.target.closest('.sub-tab-btn');
+  if (!btn) return;
+  document.querySelectorAll('#subTabsGerReu .sub-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  coordinadorActivoGerReu = btn.dataset.coord;
+  renderGerenciaReuniones();
+});
+function abrirModalGerReu(reu) {
+  editingGerReuId = reu ? reu.id : null;
+  document.getElementById('modalTitleGerReu').textContent = reu ? 'Editar reunión' : 'Nueva reunión';
+  document.getElementById('gerReuCoordinador').value = reu ? reu.coordinador : coordinadorActivoGerReu;
+  document.getElementById('gerReuFecha').value = reu ? reu.fecha : new Date().toISOString().slice(0,10);
+  document.getElementById('gerReuResumen').value = reu ? reu.resumen : '';
+  document.getElementById('gerReuEstado').value = reu ? (reu.estado || '') : '';
+  document.getElementById('formErrorGerReu').style.display = 'none';
+  document.getElementById('overlayGerReu').classList.add('open');
+}
+function cerrarModalGerReu() {
+  document.getElementById('overlayGerReu').classList.remove('open');
+  document.getElementById('formGerReu').reset();
+  editingGerReuId = null;
+}
+function editarGerReu(id) {
+  const reu = gerenciaReuniones.find(r => r.id === id);
+  if (reu) abrirModalGerReu(reu);
+}
+async function eliminarGerReu(id) {
+  if (!(await customConfirm('¿Eliminar esta reunión? Esta acción no se puede deshacer.'))) return;
+  gerenciaReuniones = gerenciaReuniones.filter(r => r.id !== id);
+  const ok = await guardarGerenciaReuniones();
+  if (ok) renderGerenciaReuniones();
+}
+document.getElementById('btnNuevoGerReu').addEventListener('click', () => abrirModalGerReu(null));
+document.getElementById('btnCancelarGerReu').addEventListener('click', cerrarModalGerReu);
+document.getElementById('overlayGerReu').addEventListener('click', (ev) => { if (ev.target.id === 'overlayGerReu') cerrarModalGerReu(); });
+document.getElementById('btnGuardarGerReu').addEventListener('click', async (ev) => {
+  ev.preventDefault();
+  const coordinador = document.getElementById('gerReuCoordinador').value;
+  const fecha = document.getElementById('gerReuFecha').value;
+  const resumen = document.getElementById('gerReuResumen').value.trim();
+  const errEl = document.getElementById('formErrorGerReu');
+  if (!coordinador || !fecha || !resumen) {
+    errEl.textContent = 'Completá coordinador/a, fecha y el resumen antes de guardar.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  const data = { id: editingGerReuId || (Date.now().toString(36) + Math.random().toString(36).slice(2,7)), coordinador, fecha, resumen, estado: document.getElementById('gerReuEstado').value || null };
+  if (editingGerReuId) { gerenciaReuniones = gerenciaReuniones.map(r => r.id === editingGerReuId ? data : r); }
+  else { gerenciaReuniones.push(data); }
+  const ok = await guardarGerenciaReuniones();
+  if (ok) {
+    cerrarModalGerReu();
+    coordinadorActivoGerReu = coordinador;
+    document.querySelectorAll('#subTabsGerReu .sub-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.coord === coordinador));
+    renderGerenciaReuniones();
+  }
+});
+// --- Migración única: pasa a Gerencia las reuniones de tipo "De coordinación" cuyo participante sea "Nombre-Duran" ---
+function normalizarTextoMig(s) {
+  return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+document.getElementById('btnMigrarGerReu').addEventListener('click', async () => {
+  const candidatas = informes.filter(inf => {
+    if (inf.area !== 'De coordinación') return false;
+    const partes = (inf.participantes || '').trim().split('-');
+    if (partes.length !== 2) return false;
+    const [a, b] = partes.map(p => p.trim());
+    return normalizarTextoMig(a) === 'duran' || normalizarTextoMig(b) === 'duran';
+  });
+
+  if (candidatas.length === 0) {
+    await customAlert('No encontré reuniones de tipo "Coordinación" con el patrón "Nombre-Duran" en "Otros participantes". Revisá que estén cargadas así antes de migrar.');
+    return;
+  }
+
+  if (!(await customConfirm(`Encontré ${candidatas.length} reunión(es) para migrar a Gerencia. Van a desaparecer de la pestaña Reuniones y quedar solo en Gerencia, con su color si lo tenían. ¿Continuar?`))) return;
+
+  const resumenPorCoordinador = {};
+  candidatas.forEach(inf => {
+    const partes = (inf.participantes || '').trim().split('-').map(p => p.trim());
+    const nombreCrudo = normalizarTextoMig(partes[0]) === 'duran' ? partes[1] : partes[0];
+    const norm = normalizarTextoMig(nombreCrudo);
+    let coordinador = configCoordinadoresGerencia.find(c => normalizarTextoMig(c) === norm);
+    if (!coordinador) {
+      coordinador = nombreCrudo;
+      configCoordinadoresGerencia.push(coordinador);
+    }
+    gerenciaReuniones.push({
+      id: 'mig-' + Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+      coordinador, fecha: inf.fecha, resumen: inf.resumen, estado: inf.estado || null
+    });
+    resumenPorCoordinador[coordinador] = (resumenPorCoordinador[coordinador] || 0) + 1;
+  });
+
+  const idsAMigrar = new Set(candidatas.map(inf => inf.id));
+  informes = informes.filter(inf => !idsAMigrar.has(inf.id));
+
+  await guardarInformes();
+  await guardarGerenciaReuniones();
+  await guardarConfigSistema();
+
+  poblarCoordinadoresGerReu();
+  renderInformes();
+  renderGerenciaReuniones();
+  renderTodosLosChipsConfig();
+
+  const detalle = Object.entries(resumenPorCoordinador).map(([c, n]) => `${c}: ${n}`).join(', ');
+  await customAlert(`Listo. Se migraron ${candidatas.length} reunión(es) a Gerencia (${detalle}).`);
+});
+
+// Semáforo de coordinadores, exclusivo de Gerencia — no tiene relación con el semáforo de empleados del dashboard.
+function estadoActualCoordinador(nombre) {
+  const hist = gerenciaReuniones
+    .filter(r => r.coordinador === nombre && r.estado)
+    .sort((a,b) => a.fecha.localeCompare(b.fecha));
+  return hist.length ? hist[hist.length - 1].estado : 'sin-evaluar';
+}
+function renderSemaforoGerencia() {
+  const el = document.getElementById('dashboardGerencia');
+  if (!el) return;
+  el.innerHTML = configCoordinadoresGerencia.map(c => {
+    const estado = estadoActualCoordinador(c);
+    const clase = estado === 'sin-evaluar' ? '' : 'm-' + estado;
+    return `<div class="metric ${clase}"><div class="mlabel">${escapeHtml(c)}</div><div class="mvalue" style="font-size:14px;">${semLabels[estado]}</div></div>`;
+  }).join('');
+}
+
+function renderGerenciaReuniones() {
+  renderSemaforoGerencia();
+  const mesFiltro = document.getElementById('fMesGerReu').value;
+  let filtradas = gerenciaReuniones.filter(r => r.coordinador === coordinadorActivoGerReu);
+  if (mesFiltro) filtradas = filtradas.filter(r => r.fecha && r.fecha.startsWith(mesFiltro));
+  filtradas.sort((a,b) => b.fecha.localeCompare(a.fecha));
+  document.getElementById('statusGerReu').textContent = filtradas.length + ' reunión(es) con ' + coordinadorActivoGerReu;
+  const lista = document.getElementById('listaGerReu');
+  if (filtradas.length === 0) {
+    lista.innerHTML = '<div class="empty">No hay reuniones registradas que coincidan.<br>Cargá la primera con "+ Nueva reunión".</div>';
+    return;
+  }
+  lista.innerHTML = filtradas.map(r => `
+    <div class="card">
+      <div class="card-head">
+        <div>
+          ${r.estado ? `<span class="semaforo-badge ${r.estado}"><span class="dot ${r.estado}"></span>${semLabels[r.estado]}</span>` : ''}
+          <p class="name">${fmtFecha(r.fecha)}</p>
+        </div>
+        <div class="card-actions">
+          <button class="btn secondary small" onclick="editarGerReu('${r.id}')">Editar</button>
+          <button class="btn danger small" onclick="eliminarGerReu('${r.id}')">Eliminar</button>
+        </div>
+      </div>
+      <div class="card-body"><p>${escapeHtml(r.resumen)}</p></div>
+    </div>`).join('');
+}
+document.getElementById('fMesGerReu').addEventListener('change', renderGerenciaReuniones);
+document.getElementById('btnLimpiarMesGerReu').addEventListener('click', () => {
+  document.getElementById('fMesGerReu').value = '';
+  renderGerenciaReuniones();
+});
+
+/* ---------- CAMBIAR CLAVE DE GERENCIA ---------- */
+document.getElementById('btnCambiarGerClave').addEventListener('click', async () => {
+  const actual = document.getElementById('gerClaveActual').value;
+  const nueva = document.getElementById('gerClaveNueva').value;
+  const repetir = document.getElementById('gerClaveNuevaRepetir').value;
+  const errEl = document.getElementById('formErrorGerClave');
+  const okEl = document.getElementById('successGerClave');
+  errEl.style.display = 'none';
+  okEl.style.display = 'none';
+
+  if (actual !== claveGerencia) {
+    errEl.textContent = 'La clave actual no coincide.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!nueva || nueva.length < 4) {
+    errEl.textContent = 'La clave nueva tiene que tener al menos 4 caracteres.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (nueva !== repetir) {
+    errEl.textContent = 'Las dos claves nuevas no coinciden.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  try {
+    await window.storage.set(K_GER_CLAVE, JSON.stringify(nueva), true);
+    claveGerencia = nueva;
+    document.getElementById('gerClaveActual').value = '';
+    document.getElementById('gerClaveNueva').value = '';
+    document.getElementById('gerClaveNuevaRepetir').value = '';
+    okEl.style.display = 'block';
+  } catch (e) {
+    errEl.textContent = 'No se pudo guardar la nueva clave. Probá de nuevo.';
+    errEl.style.display = 'block';
+  }
+});
+
+/* ---------- CONFIGURACIÓN DEL SISTEMA (listas dinámicas + claves) ---------- */
+async function guardarConfigSistema() {
+  const cfg = {
+    claveAcceso: CLAVE_ACCESO,
+    diasAlerta: DIAS_ALERTA,
+    coordinadores: configCoordinadores,
+    coordinadoresGerencia: configCoordinadoresGerencia,
+    tiposReunion: configTiposReunion,
+    aspectosFaltas: configAspectosFaltas
+  };
+  try { await window.storage.set(K_CONFIG, JSON.stringify(cfg), true); return true; }
+  catch (e) { return false; }
+}
+
+// Regenera el select de tipo de reunión (modal) y el filtro, a partir de configTiposReunion.
+function poblarOpcionesTiposReunion() {
+  const selModal = document.getElementById('iArea');
+  const selFiltro = document.getElementById('fAreaInf');
+  if (!selModal || !selFiltro) return;
+  const actualModal = selModal.value;
+  const actualFiltro = selFiltro.value;
+  const opciones = configTiposReunion.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+  selModal.innerHTML = '<option value="">Seleccionar...</option>' + opciones;
+  selFiltro.innerHTML = '<option value="">Todos los tipos</option>' + opciones;
+  selModal.value = actualModal;
+  selFiltro.value = actualFiltro;
+}
+
+// Regenera el select de aspecto de novedad (modal) y el filtro, a partir de configAspectosFaltas. Mantiene "Otro" al final.
+function poblarOpcionesAspectosFaltas() {
+  const selModal = document.getElementById('faAspecto');
+  const selFiltro = document.getElementById('fAspectoFal');
+  if (!selModal || !selFiltro) return;
+  const actualModal = selModal.value;
+  const actualFiltro = selFiltro.value;
+  const opciones = configAspectosFaltas.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
+  selModal.innerHTML = '<option value="">Seleccionar...</option>' + opciones + '<option value="Otro">Otro</option>';
+  selFiltro.innerHTML = '<option value="">Todos los aspectos</option>' + opciones + '<option value="Otro">Otro</option>';
+  selModal.value = actualModal;
+  selFiltro.value = actualFiltro;
+}
+
+// Regenera las sub-pestañas y el select de coordinador de la pestaña Observaciones.
+function poblarCoordinadoresObs() {
+  const cont = document.getElementById('subTabsObs');
+  const sel = document.getElementById('obsCoordinador');
+  if (!cont || !sel) return;
+  if (!configCoordinadores.includes(coordinadorActivoObs)) coordinadorActivoObs = configCoordinadores[0] || '';
+  cont.innerHTML = configCoordinadores.map(c => `<button class="sub-tab-btn${c === coordinadorActivoObs ? ' active' : ''}" data-coord="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join('');
+  sel.innerHTML = configCoordinadores.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+}
+
+// Regenera las sub-pestañas y el select de coordinador de Gerencia > Reuniones con coordinadores.
+function poblarCoordinadoresGerReu() {
+  const cont = document.getElementById('subTabsGerReu');
+  const sel = document.getElementById('gerReuCoordinador');
+  if (!cont || !sel) return;
+  if (!configCoordinadoresGerencia.includes(coordinadorActivoGerReu)) coordinadorActivoGerReu = configCoordinadoresGerencia[0] || '';
+  cont.innerHTML = configCoordinadoresGerencia.map(c => `<button class="sub-tab-btn${c === coordinadorActivoGerReu ? ' active' : ''}" data-coord="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join('');
+  sel.innerHTML = configCoordinadoresGerencia.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+}
+
+// --- Chips genéricos: uno por cada una de las 4 listas configurables ---
+const CONFIG_LISTAS = {
+  coordinadores: { get: () => configCoordinadores, set: (v) => { configCoordinadores = v; }, chipsId: 'chipsCoordinadores', inputId: 'nuevoCoordinador', repoblar: poblarCoordinadoresObs, rerender: () => renderObservaciones() },
+  coordinadoresGerencia: { get: () => configCoordinadoresGerencia, set: (v) => { configCoordinadoresGerencia = v; }, chipsId: 'chipsCoordinadoresGerencia', inputId: 'nuevoCoordinadorGerencia', repoblar: poblarCoordinadoresGerReu, rerender: () => renderGerenciaReuniones() },
+  tiposReunion: { get: () => configTiposReunion, set: (v) => { configTiposReunion = v; }, chipsId: 'chipsTiposReunion', inputId: 'nuevoTipoReunion', repoblar: poblarOpcionesTiposReunion, rerender: () => renderInformes() },
+  aspectosFaltas: { get: () => configAspectosFaltas, set: (v) => { configAspectosFaltas = v; }, chipsId: 'chipsAspectosFaltas', inputId: 'nuevoAspectoFalta', repoblar: poblarOpcionesAspectosFaltas, rerender: () => renderFaltas() }
+};
+
+function renderChipsConfig(clave) {
+  const def = CONFIG_LISTAS[clave];
+  const el = document.getElementById(def.chipsId);
+  if (!el) return;
+  el.innerHTML = def.get().map((item, i) => `
+    <span class="config-chip">${escapeHtml(item)} <button type="button" onclick="quitarItemConfig('${clave}', ${i})" title="Quitar">×</button></span>
+  `).join('');
+}
+function renderTodosLosChipsConfig() {
+  Object.keys(CONFIG_LISTAS).forEach(renderChipsConfig);
+}
+
+async function agregarItemConfig(clave) {
+  const def = CONFIG_LISTAS[clave];
+  const input = document.getElementById(def.inputId);
+  const valor = input.value.trim();
+  if (!valor) return;
+  const lista = def.get();
+  if (lista.some(x => x.toLowerCase() === valor.toLowerCase())) { input.value = ''; return; }
+  def.set([...lista, valor]);
+  input.value = '';
+  await guardarConfigSistema();
+  renderChipsConfig(clave);
+  def.repoblar();
+  def.rerender();
+}
+window.quitarItemConfig = async function(clave, idx) {
+  const def = CONFIG_LISTAS[clave];
+  if (!(await customConfirm('¿Quitar esta opción de la lista? Los registros ya cargados con este valor no se modifican.'))) return;
+  const lista = def.get().slice();
+  lista.splice(idx, 1);
+  def.set(lista);
+  await guardarConfigSistema();
+  renderChipsConfig(clave);
+  def.repoblar();
+  def.rerender();
+};
+
+document.getElementById('btnAgregarCoordinador').addEventListener('click', () => agregarItemConfig('coordinadores'));
+document.getElementById('nuevoCoordinador').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') agregarItemConfig('coordinadores'); });
+document.getElementById('btnAgregarCoordinadorGerencia').addEventListener('click', () => agregarItemConfig('coordinadoresGerencia'));
+document.getElementById('nuevoCoordinadorGerencia').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') agregarItemConfig('coordinadoresGerencia'); });
+document.getElementById('btnAgregarTipoReunion').addEventListener('click', () => agregarItemConfig('tiposReunion'));
+document.getElementById('nuevoTipoReunion').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') agregarItemConfig('tiposReunion'); });
+document.getElementById('btnAgregarAspectoFalta').addEventListener('click', () => agregarItemConfig('aspectosFaltas'));
+document.getElementById('nuevoAspectoFalta').addEventListener('keydown', (ev) => { if (ev.key === 'Enter') agregarItemConfig('aspectosFaltas'); });
+
+// --- Clave de acceso general ---
+document.getElementById('btnCambiarClaveAcceso').addEventListener('click', async () => {
+  const actual = document.getElementById('configClaveAccesoActual').value;
+  const nueva = document.getElementById('configClaveAccesoNueva').value;
+  const errEl = document.getElementById('formErrorConfigClave');
+  const okEl = document.getElementById('successConfigClave');
+  errEl.style.display = 'none';
+  okEl.style.display = 'none';
+  if (actual !== CLAVE_ACCESO) {
+    errEl.textContent = 'La clave actual no coincide.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (!nueva || nueva.length < 4) {
+    errEl.textContent = 'La clave nueva tiene que tener al menos 4 caracteres.';
+    errEl.style.display = 'block';
+    return;
+  }
+  CLAVE_ACCESO = nueva;
+  const ok = await guardarConfigSistema();
+  if (ok) {
+    document.getElementById('configClaveAccesoActual').value = '';
+    document.getElementById('configClaveAccesoNueva').value = '';
+    okEl.style.display = 'block';
+  } else {
+    errEl.textContent = 'No se pudo guardar. Probá de nuevo.';
+    errEl.style.display = 'block';
+  }
+});
+
+// --- Días de alerta "sin reunión" ---
+document.getElementById('btnGuardarDiasAlerta').addEventListener('click', async () => {
+  const valor = parseInt(document.getElementById('configDiasAlerta').value, 10);
+  if (!Number.isInteger(valor) || valor < 1) return;
+  DIAS_ALERTA = valor;
+  document.getElementById('diasAlertaActualTexto').textContent = valor;
+  await guardarConfigSistema();
+  renderDashboard();
+});
 
 /* ---------- FICHADAS (de solo lectura, se marcan desde la página del equipo) ---------- */
 function poblarSelectEmpleadosFich() {
