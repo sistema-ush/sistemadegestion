@@ -2039,6 +2039,13 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
     actualizarSidebarPorTab(btn.dataset.tab);
     if (btn.dataset.tab === 'buenaspracticas') marcarBpComoVisto();
+    if (btn.dataset.tab !== 'gerencia' && gerenciaDesbloqueada) {
+      gerenciaDesbloqueada = false;
+      document.getElementById('gerenciaContenido').style.display = 'none';
+      document.getElementById('gerenciaLockBox').style.display = 'block';
+      document.getElementById('gerenciaLockInput').value = '';
+      document.getElementById('gerenciaLockError').style.display = 'none';
+    }
   });
 });
 actualizarSidebarPorTab('empleados');
