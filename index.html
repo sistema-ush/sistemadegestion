@@ -1719,6 +1719,11 @@ async function cargarTodo() {
       if (Array.isArray(cfg.coordinadoresGerencia) && cfg.coordinadoresGerencia.length) configCoordinadoresGerencia = cfg.coordinadoresGerencia;
       if (Array.isArray(cfg.tiposReunion) && cfg.tiposReunion.length) configTiposReunion = cfg.tiposReunion;
       if (Array.isArray(cfg.aspectosFaltas) && cfg.aspectosFaltas.length) configAspectosFaltas = cfg.aspectosFaltas;
+      // Limpieza única: Durán ya está en Gerencia, no va en Observaciones. La marca evita repetirlo si se vuelve a agregar a propósito.
+      if (!cfg.limpiezaDuran) {
+        configCoordinadores = configCoordinadores.filter(n => n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() !== 'duran');
+        guardarConfigSistema();
+      }
     }
   } catch (e) { /* se queda con los valores por defecto */ }
   poblarOpcionesTiposReunion();
@@ -3148,7 +3153,8 @@ async function guardarConfigSistema() {
     coordinadores: configCoordinadores,
     coordinadoresGerencia: configCoordinadoresGerencia,
     tiposReunion: configTiposReunion,
-    aspectosFaltas: configAspectosFaltas
+    aspectosFaltas: configAspectosFaltas,
+    limpiezaDuran: true
   };
   try { await window.storage.set(K_CONFIG, JSON.stringify(cfg), true); return true; }
   catch (e) { return false; }
