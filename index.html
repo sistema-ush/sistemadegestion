@@ -1412,8 +1412,13 @@
         return { key, value, shared: true };
       } catch (e) {
         console.error('storage.set error:', e);
-        return null;
+        throw e; // antes devolvía null y los guardados fallidos pasaban como exitosos
       }
+    },
+    // Como get, pero distingue "no existe" (devuelve null) de "no se pudo leer" (lanza error).
+    async getStrict(key) {
+      const doc = await db.collection('storage').doc(key).get();
+      return doc.exists ? { key, value: doc.data().value, shared: true } : null;
     },
     async delete(key) {
       try {
@@ -1441,6 +1446,14 @@
 <script>
 let CLAVE_ACCESO = '0000';
 let claveGerencia = '9999'; // Valor por defecto hasta que se cargue (o se cambie) desde la base de datos.
+const CLAVE_GERENCIA_DEFECTO = '9999';
+// Lee la clave de Gerencia directamente de la base cada vez (no confía en lo que quedó en memoria).
+async function leerClaveGerenciaVigente() {
+  const r = await window.storage.getStrict(K_GER_CLAVE);
+  const vigente = r ? JSON.parse(r.value) : CLAVE_GERENCIA_DEFECTO;
+  claveGerencia = vigente;
+  return vigente;
+}
 let configCoordinadores = ['Flor', 'Mica', 'Martín'];
 let configCoordinadoresGerencia = ['Flor', 'Mica', 'Martín'];
 let configTiposReunion = ['Individual', 'Área técnica', 'Área de ventas', 'De coordinación', 'Seguimiento correctivo', 'Seguimiento de ingreso'];
@@ -1722,7 +1735,7 @@ async function cargarTodo() {
       // Limpieza única: Durán ya está en Gerencia, no va en Observaciones. La marca evita repetirlo si se vuelve a agregar a propósito.
       if (!cfg.limpiezaDuran) {
         configCoordinadores = configCoordinadores.filter(n => n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() !== 'duran');
-        guardarConfigSistema();
+        guardarConfigSistema(true);
       }
     }
   } catch (e) { /* se queda con los valores por defecto */ }
@@ -2909,10 +2922,22 @@ function renderObservaciones() {
 }
 
 /* ---------- GERENCIA (candado propio, separado del resto) ---------- */
-document.getElementById('gerenciaLockBtn').addEventListener('click', () => {
+document.getElementById('gerenciaLockBtn').addEventListener('click', async () => {
   const input = document.getElementById('gerenciaLockInput');
   const err = document.getElementById('gerenciaLockError');
-  if (input.value === claveGerencia) {
+  const btn = document.getElementById('gerenciaLockBtn');
+  err.style.display = 'none';
+  btn.disabled = true;
+  let vigente;
+  try { vigente = await leerClaveGerenciaVigente(); }
+  catch (e) {
+    btn.disabled = false;
+    err.textContent = 'No se pudo verificar la clave. Revisá tu conexión y probá de nuevo.';
+    err.style.display = 'block';
+    return;
+  }
+  btn.disabled = false;
+  if (input.value === vigente) {
     gerenciaDesbloqueada = true;
     document.getElementById('gerenciaLockBox').style.display = 'none';
     document.getElementById('gerenciaContenido').style.display = 'block';
@@ -2922,6 +2947,7 @@ document.getElementById('gerenciaLockBtn').addEventListener('click', () => {
     document.getElementById('diasAlertaActualTexto').textContent = DIAS_ALERTA;
     document.getElementById('configDiasAlerta').value = DIAS_ALERTA;
   } else {
+    err.textContent = 'Clave incorrecta. Probá de nuevo.';
     err.style.display = 'block';
     input.value = '';
     input.focus();
@@ -3116,7 +3142,14 @@ document.getElementById('btnCambiarGerClave').addEventListener('click', async ()
   errEl.style.display = 'none';
   okEl.style.display = 'none';
 
-  if (actual !== claveGerencia) {
+  let vigente;
+  try { vigente = await leerClaveGerenciaVigente(); }
+  catch (e) {
+    errEl.textContent = 'No se pudo verificar la clave actual. Revisá tu conexión y probá de nuevo.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if (actual !== vigente) {
     errEl.textContent = 'La clave actual no coincide.';
     errEl.style.display = 'block';
     return;
@@ -3134,6 +3167,9 @@ document.getElementById('btnCambiarGerClave').addEventListener('click', async ()
 
   try {
     await window.storage.set(K_GER_CLAVE, JSON.stringify(nueva), true);
+    // Solo se avisa éxito si la base realmente quedó con la clave nueva.
+    const confirmada = await window.storage.getStrict(K_GER_CLAVE);
+    if (!confirmada || JSON.parse(confirmada.value) !== nueva) throw new Error('El guardado no se pudo confirmar');
     claveGerencia = nueva;
     document.getElementById('gerClaveActual').value = '';
     document.getElementById('gerClaveNueva').value = '';
@@ -3146,7 +3182,7 @@ document.getElementById('btnCambiarGerClave').addEventListener('click', async ()
 });
 
 /* ---------- CONFIGURACIÓN DEL SISTEMA (listas dinámicas + claves) ---------- */
-async function guardarConfigSistema() {
+async function guardarConfigSistema(silencioso) {
   const cfg = {
     claveAcceso: CLAVE_ACCESO,
     diasAlerta: DIAS_ALERTA,
@@ -3157,7 +3193,7 @@ async function guardarConfigSistema() {
     limpiezaDuran: true
   };
   try { await window.storage.set(K_CONFIG, JSON.stringify(cfg), true); return true; }
-  catch (e) { return false; }
+  catch (e) { if (!silencioso) customAlert('No se pudo guardar el cambio. Probá de nuevo.'); return false; }
 }
 
 // Regenera el select de tipo de reunión (modal) y el filtro, a partir de configTiposReunion.
@@ -3281,8 +3317,10 @@ document.getElementById('btnCambiarClaveAcceso').addEventListener('click', async
     errEl.style.display = 'block';
     return;
   }
+  const claveAnterior = CLAVE_ACCESO;
   CLAVE_ACCESO = nueva;
-  const ok = await guardarConfigSistema();
+  const ok = await guardarConfigSistema(true);
+  if (!ok) CLAVE_ACCESO = claveAnterior;
   if (ok) {
     document.getElementById('configClaveAccesoActual').value = '';
     document.getElementById('configClaveAccesoNueva').value = '';
