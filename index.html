@@ -310,6 +310,75 @@
   .config-chip button { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 15px; line-height: 1; padding: 0 2px; }
   .config-add-row { display: flex; gap: 8px; }
   .config-add-row input { flex: 1; }
+
+  .card-shortcuts { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 6px; font-size: 12.5px; font-weight: 600; }
+
+  /* ---------- DISTRIBUCIÓN DE GERENCIA: reuniones primero, agenda en el lateral, observaciones abajo ---------- */
+  .ger-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 16px; align-items: start; }
+  .ger-grid .rubrica { margin-bottom: 0; }
+  .ger-reu { grid-column: 1; grid-row: 1; }
+  .ger-agenda { grid-column: 2; grid-row: 1; }
+  .ger-obs, .ger-clave, .ger-config { grid-column: 1 / -1; }
+  body.tab-gerencia .side-col { display: none; }
+  @media (max-width: 1000px) {
+    .ger-grid { grid-template-columns: minmax(0, 1fr); }
+    .ger-reu, .ger-agenda { grid-column: 1; grid-row: auto; }
+  }
+
+  /* ---------- AGENDA DE GERENCIA ---------- */
+  .ag-chk { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); cursor: pointer; }
+  .ag-chk input { width: 16px; height: 16px; accent-color: var(--teal); }
+  .ag-grupo { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 18px 0 4px; }
+  .ag-grupo.venc { color: var(--coral); }
+  .ag-grupo.hoy { color: var(--amber); }
+  .ag-item { display: grid; grid-template-columns: 22px 1fr; gap: 6px 10px; align-items: start; padding: 10px 0; border-top: 1px solid var(--line); }
+  .ag-item input[type="checkbox"] { width: 18px; height: 18px; margin-top: 1px; accent-color: var(--teal); cursor: pointer; }
+  .ag-fecha { font-size: 12px; font-weight: 700; color: var(--teal); }
+  .ag-item.venc .ag-fecha { color: var(--coral); }
+  .ag-texto { font-size: 14px; white-space: pre-line; margin-top: 2px; }
+  .ag-item.hecha .ag-texto { text-decoration: line-through; opacity: 0.55; }
+  .ag-item.hecha .ag-fecha { color: var(--muted); }
+  .ag-acciones { display: flex; gap: 6px; grid-column: 2; }
+
+  /* ---------- FICHA COMPLETA DEL EMPLEADO ---------- */
+  .modal.modal-ficha { max-width: 900px; padding: 0; }
+  .ficha-top { position: sticky; top: 0; z-index: 2; background: var(--card); padding: 20px 24px 14px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .modal .ficha-top h2 { margin: 8px 0 2px; font-size: 22px; }
+  .ficha-top .role { margin: 0; font-size: 13px; color: var(--muted); }
+  .ficha-acciones { display: flex; gap: 6px; }
+  .ficha-body { padding: 18px 24px 26px; }
+  .ficha-datos { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; font-size: 13px; }
+  .ficha-datos .ficha-ob { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 8px; margin-top: 4px; color: var(--muted); }
+  .ficha-datos .ficha-ob strong { color: var(--ink); }
+  .ficha-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 18px 0; }
+  .ficha-tile { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; transition: border-color .15s; }
+  .ficha-tile:hover, .ficha-tile.on { border-color: var(--ink); }
+  .ficha-tile .tk { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; }
+  .ficha-tile .tv { font-size: 21px; font-weight: 700; margin-top: 2px; }
+  .ficha-tile .ts { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .ficha-nota { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
+  .tl-item { display: grid; grid-template-columns: 92px 1fr; gap: 14px; padding: 12px 0; border-top: 1px solid var(--line); }
+  .tl-fecha { font-size: 12px; color: var(--muted); font-weight: 600; padding-top: 2px; }
+  .tl-tag { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 9px; border-radius: 20px; margin: 0 6px 4px 0; }
+  .tl-reunion { background: var(--teal-bg); color: var(--teal); }
+  .tl-evaluacion { background: rgba(119,52,121,0.32); color: #C99BD0; }
+  .tl-novedad { background: var(--coral-bg); color: var(--coral); }
+  .tl-vacaciones { background: var(--green-bg); color: var(--green); }
+  .tl-licencia { background: var(--amber-bg); color: var(--amber); }
+  .tl-estrella { background: rgba(247,176,8,0.16); color: #F7B008; }
+  .tl-ingreso { background: rgba(255,255,255,0.07); color: var(--muted); }
+  .tl-estado { font-size: 12px; font-weight: 600; margin-left: 4px; }
+  .tl-estado.Aprobado { color: var(--green); } .tl-estado.Pendiente { color: var(--amber); } .tl-estado.Rechazado { color: var(--coral); }
+  .tl-main { font-weight: 600; font-size: 14px; margin-top: 2px; }
+  .tl-text { font-size: 13px; opacity: 0.88; white-space: pre-line; margin-top: 3px; }
+  .tl-extra { font-size: 12px; color: var(--muted); white-space: pre-line; margin-top: 3px; }
+  .tl-extra a { color: var(--teal); }
+  @media (max-width: 560px) {
+    .ficha-datos { grid-template-columns: 1fr; }
+    .ficha-tiles { grid-template-columns: repeat(2, 1fr); }
+    .tl-item { grid-template-columns: 1fr; gap: 4px; }
+    .ficha-top, .ficha-body { padding-left: 16px; padding-right: 16px; }
+  }
   .rubrica-toggle { font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
   .rubrica-body { display: none; margin-top: 12px; }
   .rubrica-body.open { display: block; }
@@ -728,133 +797,150 @@
     </div>
 
     <div id="gerenciaContenido" style="display:none;">
-      <div class="rubrica">
-        <div class="rubrica-toggle" onclick="toggleBloque('gerObs-body')">
-          <span>Observaciones</span>
-          <span class="rubrica-chevron">▾</span>
-        </div>
-        <div class="rubrica-body open" id="gerObs-body">
-          <div class="toolbar">
-            <button class="btn" id="btnNuevoGerObs">+ Nueva observación</button>
+      <div class="ger-grid">
+        <div class="rubrica ger-reu">
+          <div class="rubrica-toggle" onclick="toggleBloque('gerReu-body')">
+            <span>Reuniones con coordinadores</span>
+            <span class="rubrica-chevron">▾</span>
           </div>
-          <div class="status" id="statusGerObs">Cargando...</div>
-          <div id="listaGerObs"></div>
+          <div class="rubrica-body open" id="gerReu-body">
+            <div class="dashboard" id="dashboardGerencia" style="margin-bottom:16px;"></div>
+            <div class="sub-tabs" id="subTabsGerReu">
+              <button class="sub-tab-btn active" data-coord="Flor">Flor</button>
+              <button class="sub-tab-btn" data-coord="Mica">Mica</button>
+              <button class="sub-tab-btn" data-coord="Martín">Martín</button>
+            </div>
+            <div class="toolbar">
+              <input type="month" id="fMesGerReu" title="Filtrar por mes">
+              <button class="btn secondary small" id="btnLimpiarMesGerReu" type="button">Ver todos los meses</button>
+              <button class="btn" id="btnNuevoGerReu">+ Nueva reunión</button>
+            </div>
+            <div class="status" id="statusGerReu">Cargando...</div>
+            <div id="listaGerReu"></div>
+          </div>
         </div>
-      </div>
 
-      <div class="rubrica" style="margin-top:16px;">
-        <div class="rubrica-toggle" onclick="toggleBloque('gerReu-body')">
-          <span>Reuniones con coordinadores</span>
-          <span class="rubrica-chevron">▾</span>
-        </div>
-        <div class="rubrica-body open" id="gerReu-body">
-          <div class="dashboard" id="dashboardGerencia" style="margin-bottom:16px;"></div>
-          <div class="sub-tabs" id="subTabsGerReu">
-            <button class="sub-tab-btn active" data-coord="Flor">Flor</button>
-            <button class="sub-tab-btn" data-coord="Mica">Mica</button>
-            <button class="sub-tab-btn" data-coord="Martín">Martín</button>
+        <div class="rubrica ger-agenda">
+          <div class="rubrica-toggle" onclick="toggleBloque('gerAg-body')">
+            <span>Agenda</span>
+            <span class="rubrica-chevron">▾</span>
           </div>
-          <div class="toolbar">
-            <input type="month" id="fMesGerReu" title="Filtrar por mes">
-            <button class="btn secondary small" id="btnLimpiarMesGerReu" type="button">Ver todos los meses</button>
-            <button class="btn" id="btnNuevoGerReu">+ Nueva reunión</button>
+          <div class="rubrica-body open" id="gerAg-body">
+            <div class="toolbar">
+              <button class="btn" id="btnNuevoGerAg">+ Nueva nota</button>
+              <label class="ag-chk"><input type="checkbox" id="chkGerAgHechas"> Mostrar hechas</label>
+            </div>
+            <div class="status" id="statusGerAg">Cargando...</div>
+            <div id="listaGerAg"></div>
           </div>
-          <div class="status" id="statusGerReu">Cargando...</div>
-          <div id="listaGerReu"></div>
         </div>
-      </div>
 
-      <div class="rubrica" style="margin-top:16px;">
-        <div class="rubrica-toggle" onclick="toggleBloque('gerClave-body')">
-          <span>🔒 Cambiar clave de Gerencia</span>
-          <span class="rubrica-chevron">▾</span>
+        <div class="rubrica ger-obs">
+          <div class="rubrica-toggle" onclick="toggleBloque('gerObs-body')">
+            <span>Observaciones</span>
+            <span class="rubrica-chevron">▾</span>
+          </div>
+          <div class="rubrica-body open" id="gerObs-body">
+            <div class="toolbar">
+              <button class="btn" id="btnNuevoGerObs">+ Nueva observación</button>
+            </div>
+            <div class="status" id="statusGerObs">Cargando...</div>
+            <div id="listaGerObs"></div>
+          </div>
         </div>
-        <div class="rubrica-body" id="gerClave-body" style="display:none;">
-          <div class="form-row">
-            <label for="gerClaveActual">Clave actual</label>
-            <input type="password" id="gerClaveActual" autocomplete="off">
-          </div>
-          <div class="form-row" style="margin-top:12px;">
-            <label for="gerClaveNueva">Clave nueva</label>
-            <input type="password" id="gerClaveNueva" autocomplete="off">
-          </div>
-          <div class="form-row" style="margin-top:12px;">
-            <label for="gerClaveNuevaRepetir">Repetir clave nueva</label>
-            <input type="password" id="gerClaveNuevaRepetir" autocomplete="off">
-          </div>
-          <div class="error-text" id="formErrorGerClave" style="display:none;"></div>
-          <p class="success-text" id="successGerClave" style="display:none; color: var(--green, #4CAF7A); font-size:13px; margin-top:4px;">✅ Clave actualizada correctamente.</p>
-          <button class="btn" id="btnCambiarGerClave" style="margin-top:8px;">Guardar nueva clave</button>
-        </div>
-      </div>
 
-      <div class="rubrica" style="margin-top:16px;">
-        <div class="rubrica-toggle" onclick="toggleBloque('gerConfig-body')">
-          <span>⚙️ Configuración del sistema</span>
-          <span class="rubrica-chevron">▾</span>
+        <div class="rubrica ger-clave">
+          <div class="rubrica-toggle" onclick="toggleBloque('gerClave-body')">
+            <span>🔒 Cambiar clave de Gerencia</span>
+            <span class="rubrica-chevron">▾</span>
+          </div>
+          <div class="rubrica-body" id="gerClave-body" style="display:none;">
+            <div class="form-row">
+              <label for="gerClaveActual">Clave actual</label>
+              <input type="password" id="gerClaveActual" autocomplete="off">
+            </div>
+            <div class="form-row" style="margin-top:12px;">
+              <label for="gerClaveNueva">Clave nueva</label>
+              <input type="password" id="gerClaveNueva" autocomplete="off">
+            </div>
+            <div class="form-row" style="margin-top:12px;">
+              <label for="gerClaveNuevaRepetir">Repetir clave nueva</label>
+              <input type="password" id="gerClaveNuevaRepetir" autocomplete="off">
+            </div>
+            <div class="error-text" id="formErrorGerClave" style="display:none;"></div>
+            <p class="success-text" id="successGerClave" style="display:none; color: var(--green, #4CAF7A); font-size:13px; margin-top:4px;">✅ Clave actualizada correctamente.</p>
+            <button class="btn" id="btnCambiarGerClave" style="margin-top:8px;">Guardar nueva clave</button>
+          </div>
         </div>
-        <div class="rubrica-body" id="gerConfig-body" style="display:none;">
-          <p class="desc" style="margin-bottom:18px;">Los cambios acá impactan en todo el sistema al instante, para todos los que lo estén usando.</p>
 
-          <div class="config-block">
-            <h4>Clave de acceso general (la que usan todos para entrar)</h4>
-            <div class="form-grid">
-              <div class="form-row">
-                <label for="configClaveAccesoActual">Clave actual</label>
-                <input type="password" id="configClaveAccesoActual" autocomplete="off">
+        <div class="rubrica ger-config">
+          <div class="rubrica-toggle" onclick="toggleBloque('gerConfig-body')">
+            <span>⚙️ Configuración del sistema</span>
+            <span class="rubrica-chevron">▾</span>
+          </div>
+          <div class="rubrica-body" id="gerConfig-body" style="display:none;">
+            <p class="desc" style="margin-bottom:18px;">Los cambios acá impactan en todo el sistema al instante, para todos los que lo estén usando.</p>
+  
+            <div class="config-block">
+              <h4>Clave de acceso general (la que usan todos para entrar)</h4>
+              <div class="form-grid">
+                <div class="form-row">
+                  <label for="configClaveAccesoActual">Clave actual</label>
+                  <input type="password" id="configClaveAccesoActual" autocomplete="off">
+                </div>
+                <div class="form-row">
+                  <label for="configClaveAccesoNueva">Clave nueva</label>
+                  <input type="password" id="configClaveAccesoNueva" autocomplete="off">
+                </div>
               </div>
-              <div class="form-row">
-                <label for="configClaveAccesoNueva">Clave nueva</label>
-                <input type="password" id="configClaveAccesoNueva" autocomplete="off">
+              <div class="error-text" id="formErrorConfigClave" style="display:none;"></div>
+              <p class="success-text" id="successConfigClave" style="display:none; color: var(--green, #4CAF7A); font-size:13px; margin-top:4px;">✅ Clave de acceso actualizada.</p>
+              <button class="btn secondary small" id="btnCambiarClaveAcceso" style="margin-top:6px;">Guardar clave de acceso</button>
+            </div>
+  
+            <div class="config-block">
+              <h4>Días para la alerta de "sin reunión"</h4>
+              <p class="desc">Hoy avisa en el dashboard cuando pasan <span id="diasAlertaActualTexto">45</span> días sin cargar una reunión.</p>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input type="number" id="configDiasAlerta" min="1" style="max-width:100px;">
+                <button class="btn secondary small" id="btnGuardarDiasAlerta">Guardar</button>
               </div>
             </div>
-            <div class="error-text" id="formErrorConfigClave" style="display:none;"></div>
-            <p class="success-text" id="successConfigClave" style="display:none; color: var(--green, #4CAF7A); font-size:13px; margin-top:4px;">✅ Clave de acceso actualizada.</p>
-            <button class="btn secondary small" id="btnCambiarClaveAcceso" style="margin-top:6px;">Guardar clave de acceso</button>
-          </div>
-
-          <div class="config-block">
-            <h4>Días para la alerta de "sin reunión"</h4>
-            <p class="desc">Hoy avisa en el dashboard cuando pasan <span id="diasAlertaActualTexto">45</span> días sin cargar una reunión.</p>
-            <div style="display:flex; gap:8px; align-items:center;">
-              <input type="number" id="configDiasAlerta" min="1" style="max-width:100px;">
-              <button class="btn secondary small" id="btnGuardarDiasAlerta">Guardar</button>
+  
+            <div class="config-block">
+              <h4>Coordinadores (pestaña Observaciones)</h4>
+              <div class="config-chips" id="chipsCoordinadores"></div>
+              <div class="config-add-row">
+                <input type="text" id="nuevoCoordinador" placeholder="Agregar coordinador/a...">
+                <button class="btn secondary small" id="btnAgregarCoordinador">Agregar</button>
+              </div>
             </div>
-          </div>
-
-          <div class="config-block">
-            <h4>Coordinadores (pestaña Observaciones)</h4>
-            <div class="config-chips" id="chipsCoordinadores"></div>
-            <div class="config-add-row">
-              <input type="text" id="nuevoCoordinador" placeholder="Agregar coordinador/a...">
-              <button class="btn secondary small" id="btnAgregarCoordinador">Agregar</button>
+  
+            <div class="config-block">
+              <h4>Coordinadores para reuniones de Gerencia</h4>
+              <div class="config-chips" id="chipsCoordinadoresGerencia"></div>
+              <div class="config-add-row">
+                <input type="text" id="nuevoCoordinadorGerencia" placeholder="Agregar coordinador/a...">
+                <button class="btn secondary small" id="btnAgregarCoordinadorGerencia">Agregar</button>
+              </div>
             </div>
-          </div>
-
-          <div class="config-block">
-            <h4>Coordinadores para reuniones de Gerencia</h4>
-            <div class="config-chips" id="chipsCoordinadoresGerencia"></div>
-            <div class="config-add-row">
-              <input type="text" id="nuevoCoordinadorGerencia" placeholder="Agregar coordinador/a...">
-              <button class="btn secondary small" id="btnAgregarCoordinadorGerencia">Agregar</button>
+  
+            <div class="config-block">
+              <h4>Tipos de reunión</h4>
+              <div class="config-chips" id="chipsTiposReunion"></div>
+              <div class="config-add-row">
+                <input type="text" id="nuevoTipoReunion" placeholder="Agregar tipo de reunión...">
+                <button class="btn secondary small" id="btnAgregarTipoReunion">Agregar</button>
+              </div>
             </div>
-          </div>
-
-          <div class="config-block">
-            <h4>Tipos de reunión</h4>
-            <div class="config-chips" id="chipsTiposReunion"></div>
-            <div class="config-add-row">
-              <input type="text" id="nuevoTipoReunion" placeholder="Agregar tipo de reunión...">
-              <button class="btn secondary small" id="btnAgregarTipoReunion">Agregar</button>
-            </div>
-          </div>
-
-          <div class="config-block">
-            <h4>Aspectos de Novedades</h4>
-            <div class="config-chips" id="chipsAspectosFaltas"></div>
-            <div class="config-add-row">
-              <input type="text" id="nuevoAspectoFalta" placeholder="Agregar aspecto...">
-              <button class="btn secondary small" id="btnAgregarAspectoFalta">Agregar</button>
+  
+            <div class="config-block">
+              <h4>Aspectos de Novedades</h4>
+              <div class="config-chips" id="chipsAspectosFaltas"></div>
+              <div class="config-add-row">
+                <input type="text" id="nuevoAspectoFalta" placeholder="Agregar aspecto...">
+                <button class="btn secondary small" id="btnAgregarAspectoFalta">Agregar</button>
+              </div>
             </div>
           </div>
         </div>
@@ -1338,6 +1424,33 @@
   </div>
 </div>
 
+<div class="overlay" id="overlayGerAg">
+  <div class="modal">
+    <h3 id="modalTitleGerAg">Nueva nota de agenda</h3>
+    <form id="formGerAg">
+      <div class="form-grid">
+        <div class="form-row">
+          <label for="gerAgFecha">Fecha (opcional)</label>
+          <input type="date" id="gerAgFecha">
+        </div>
+        <div class="form-row">
+          <label for="gerAgHora">Hora (opcional)</label>
+          <input type="time" id="gerAgHora">
+        </div>
+      </div>
+      <div class="form-row" style="margin-top:12px;">
+        <label for="gerAgTexto">Nota</label>
+        <textarea id="gerAgTexto" rows="4" placeholder="Qué no tengo que olvidarme..."></textarea>
+      </div>
+      <div class="error-text" id="formErrorGerAg" style="display:none;"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn secondary" id="btnCancelarGerAg">Cancelar</button>
+        <button type="button" class="btn" id="btnGuardarGerAg">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="overlay" id="overlayGerReu">
   <div class="modal">
     <h3 id="modalTitleGerReu">Nueva reunión</h3>
@@ -1375,6 +1488,19 @@
         <button type="button" class="btn" id="btnGuardarGerReu">Guardar</button>
       </div>
     </form>
+  </div>
+</div>
+
+<div class="overlay" id="overlayFicha">
+  <div class="modal modal-ficha">
+    <div class="ficha-top" id="fichaTop"></div>
+    <div class="ficha-body">
+      <div class="ficha-datos" id="fichaDatos"></div>
+      <div class="ficha-tiles" id="fichaTiles"></div>
+      <div class="sub-tabs" id="fichaChips"></div>
+      <p class="ficha-nota" id="fichaNota"></p>
+      <div id="fichaLista"></div>
+    </div>
   </div>
 </div>
 
@@ -1487,6 +1613,8 @@ let observaciones = [];
 let fichadas = [];
 let gerenciaObservaciones = [];
 let gerenciaReuniones = [];
+let gerenciaAgenda = [];
+let editingGerAgId = null;
 let editingGerObsId = null;
 let editingGerReuId = null;
 let coordinadorActivoGerReu = 'Flor';
@@ -1513,6 +1641,7 @@ const K_OBS = 'observaciones-data';
 const K_FICH = 'fichadas-data';
 const K_GER_OBS = 'gerencia-observaciones-data';
 const K_GER_REU = 'gerencia-reuniones-data';
+const K_GER_AGENDA = 'gerencia-agenda-data';
 const K_GER_CLAVE = 'gerencia-clave-data';
 const K_CONFIG = 'config-sistema-data';
 const K_BP_VISTA = 'buenas-practicas-ultima-vista';
@@ -1718,6 +1847,10 @@ async function cargarTodo() {
     const rGerReu = await window.storage.get(K_GER_REU, true);
     gerenciaReuniones = rGerReu ? JSON.parse(rGerReu.value) : [];
   } catch (e) { gerenciaReuniones = []; }
+  try {
+    const rGerAg = await window.storage.get(K_GER_AGENDA, true);
+    gerenciaAgenda = rGerAg ? JSON.parse(rGerAg.value) : [];
+  } catch (e) { gerenciaAgenda = []; }
   try {
     const rGerClave = await window.storage.get(K_GER_CLAVE, true);
     if (rGerClave) claveGerencia = JSON.parse(rGerClave.value);
@@ -2059,6 +2192,7 @@ function renderDetalleDashboard() {
 
 /* ---------- TABS ---------- */
 function actualizarSidebarPorTab(tab) {
+  document.body.classList.toggle('tab-gerencia', tab === 'gerencia');
   document.getElementById('dashboardRow').style.display = tab === 'empleados' ? 'flex' : 'none';
   document.getElementById('dashboardDetalle').style.display = tab === 'empleados' ? 'block' : 'none';
   document.getElementById('cumpleanosWrap').style.display = tab === 'empleados' ? 'block' : 'none';
@@ -2145,6 +2279,8 @@ function renderEmpleados() {
       </div>`;
     }
 
+    let nReuniones = 0, nEvaluaciones = 0;
+    informes.forEach(i => { const t = tipoInformeParaFicha(i, e); if (t === 'evaluacion') nEvaluaciones++; else if (t) nReuniones++; });
     const dias = diasSinReunion(e.id);
     let alertaHtml = '';
     if (dias === null) {
@@ -2163,6 +2299,13 @@ function renderEmpleados() {
           ${alertaHtml}
           <p class="name toggle-link" onclick="toggleBloque('detalle-emp-${e.id}')">${escapeHtml(e.nombre)}${enPeriodoPrueba ? ' <span style="font-weight:400; font-size:13px; color:var(--muted);">(Período de prueba)</span>' : ''} <span style="font-size:12px;">▾</span></p>
           <p class="role">${escapeHtml(e.area || 'Sin área asignada')}</p>
+          <div class="card-shortcuts">
+            <span class="toggle-link" onclick="abrirFicha('${e.id}', 'reuniones')">Reuniones (${nReuniones})</span>
+            <span class="toggle-link" onclick="abrirFicha('${e.id}', 'evaluaciones')">Evaluaciones de desempeño (${nEvaluaciones})</span>
+          </div>
+        </div>
+        <div class="card-actions" style="margin-top:0;">
+          <button class="btn secondary small" onclick="abrirFicha('${e.id}')">Ver ficha completa</button>
         </div>
       </div>
       <div id="detalle-emp-${e.id}" style="display:none;">
@@ -2187,6 +2330,217 @@ function renderEmpleados() {
     </div>`;
   }).join('');
 }
+
+/* ---------- FICHA COMPLETA DEL EMPLEADO ---------- */
+let fichaEmpleadoId = null;
+let fichaFiltro = 'todo';
+const FICHA_GRUPOS = { reuniones: ['reunion'], evaluaciones: ['evaluacion'], novedades: ['novedad'], vacaciones: ['vacaciones'], licencias: ['licencia'], estrellas: ['estrella'], ingresos: ['ingreso'] };
+const FICHA_FILTROS = [['todo', 'Todo'], ['reuniones', 'Reuniones'], ['evaluaciones', 'Evaluaciones'], ['novedades', 'Novedades'], ['vacaciones', 'Vacaciones'], ['licencias', 'Licencias'], ['estrellas', 'Estrellas'], ['ingresos', 'Ingresos']];
+
+function normTextoFicha(s) {
+  return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+// ¿El campo libre "Otros participantes" nombra a esta persona con nombre y apellido completos? (criterio conservador)
+function mencionaEmpleadoFicha(inf, e) {
+  const texto = normTextoFicha(inf.participantes);
+  const nombre = normTextoFicha(e.nombre);
+  if (!texto || !nombre) return false;
+  return (' ' + texto + ' ').includes(' ' + nombre + ' ');
+}
+function aUTCFicha(f) { const [y, m, d] = f.split('-').map(Number); return Date.UTC(y, m - 1, d); }
+function diasEnRangoFicha(ini, fin) { return Math.round((aUTCFicha(fin) - aUTCFicha(ini)) / 86400000) + 1; }
+function diasDelAnioFicha(ini, fin, anio) {
+  const desde = Math.max(aUTCFicha(ini), Date.UTC(anio, 0, 1));
+  const hasta = Math.min(aUTCFicha(fin), Date.UTC(anio, 11, 31));
+  return hasta >= desde ? Math.round((hasta - desde) / 86400000) + 1 : 0;
+}
+
+// ¿Cómo entra un informe en la ficha de esta persona? 'evaluacion' | 'reunion' | 'reunion-mencion' | null (no corresponde)
+function tipoInformeParaFicha(i, e) {
+  const vinculado = i.empleadoId === e.id;
+  if (i.area === 'Evaluación de desempeño') return vinculado ? 'evaluacion' : null;
+  if (vinculado) return 'reunion';
+  return mencionaEmpleadoFicha(i, e) ? 'reunion-mencion' : null;
+}
+
+// Junta TODO lo cargado de una persona. No incluye datos de Gerencia ni Observaciones (no están atados a un empleado).
+function eventosFicha(e) {
+  const ev = [];
+  informes.forEach(i => {
+    const t = tipoInformeParaFicha(i, e);
+    if (!t) return;
+    if (t === 'evaluacion') ev.push({ tipo: 'evaluacion', fecha: i.fecha, obtenido: i.puntajeObtenido, total: i.puntajeTotal, texto: i.resumen });
+    else ev.push({ tipo: 'reunion', fecha: i.fecha, area: i.area, estado: i.estado, texto: i.resumen, pendientes: i.pendientes, participantes: i.participantes, link: i.link, mencionado: t === 'reunion-mencion' });
+  });
+  faltas.filter(f => f.empleadoId === e.id).forEach(f => ev.push({ tipo: 'novedad', fecha: f.fecha, aspecto: f.aspecto, numero: f.numero, texto: f.observacion }));
+  vacaciones.filter(v => v.empleadoId === e.id).forEach(v => ev.push({ tipo: 'vacaciones', fecha: v.fechaInicio, fin: v.fechaFin, estado: v.estado, solicitud: v.fechaSolicitud }));
+  licencias.filter(l => l.empleadoId === e.id).forEach(l => ev.push({ tipo: 'licencia', fecha: l.fechaInicio, fin: l.fechaFin, clase: l.tipo, presentacion: l.fechaPresentacion, texto: l.nota }));
+  buenasPracticas.forEach(b => {
+    if (b.receptorId === e.id) ev.push({ tipo: 'estrella', sub: 'recibida', fecha: b.fecha, otro: nombreDador(b), texto: b.nota });
+    else if (b.dadaPorId === e.id) {
+      const r = empleados.find(x => x.id === b.receptorId);
+      ev.push({ tipo: 'estrella', sub: 'dada', fecha: b.fecha, otro: r ? r.nombre : 'Empleado eliminado', texto: b.nota });
+    }
+  });
+  fichadas.filter(f => f.empleadoId === e.id).forEach(f => ev.push({ tipo: 'ingreso', fecha: f.fecha, hora: f.hora, orden: f.timestampMs || 0 }));
+  ev.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || '') || (b.orden || 0) - (a.orden || 0));
+  return ev;
+}
+
+function htmlEventoFicha(x) {
+  let tag = '', principal = '', texto = '', extra = [];
+  if (x.tipo === 'reunion') {
+    tag = `<span class="tl-tag tl-reunion">Reunión · ${escapeHtml(areaLabel(x.area))}</span>` + (x.estado ? `<span class="semaforo-badge ${x.estado}" style="margin-bottom:4px;"><span class="dot ${x.estado}"></span>${semLabels[x.estado]}</span>` : '');
+    texto = x.texto;
+    if (x.pendientes) extra.push('Pendientes: ' + escapeHtml(x.pendientes));
+    if (x.mencionado) extra.push('Figura en "Otros participantes" de esta reunión.');
+    else if (x.participantes) extra.push('Otros participantes: ' + escapeHtml(x.participantes));
+    if (x.link && /^https?:\/\//i.test(x.link)) extra.push(`<a href="${escapeHtml(x.link).replace(/"/g, '&quot;')}" target="_blank" rel="noopener">Ver enlace</a>`);
+  } else if (x.tipo === 'evaluacion') {
+    tag = '<span class="tl-tag tl-evaluacion">Evaluación de desempeño</span>';
+    const num = (v) => v !== undefined && v !== null && v !== '' && !isNaN(v);
+    principal = num(x.obtenido) && num(x.total) ? `Puntaje: ${x.obtenido} / ${x.total} (${Math.round(x.obtenido / x.total * 100)}%)` : 'Sin puntaje cargado';
+    texto = x.texto;
+  } else if (x.tipo === 'novedad') {
+    tag = '<span class="tl-tag tl-novedad">Novedad</span>';
+    principal = escapeHtml(x.aspecto || '') + (x.numero ? ` · ${x.numero}ª falta del mes` : '');
+    texto = x.texto;
+  } else if (x.tipo === 'vacaciones') {
+    tag = `<span class="tl-tag tl-vacaciones">Vacaciones</span><span class="tl-estado ${escapeHtml(x.estado || '')}">${escapeHtml(x.estado || '')}</span>`;
+    principal = `${fmtFecha(x.fecha)} al ${fmtFecha(x.fin)} (${diasEnRangoFicha(x.fecha, x.fin)} días)`;
+    if (x.solicitud) extra.push('Solicitadas el ' + fmtFecha(x.solicitud));
+  } else if (x.tipo === 'licencia') {
+    tag = '<span class="tl-tag tl-licencia">Licencia / Certificado</span>';
+    principal = `${escapeHtml(x.clase || '')} · ${fmtFecha(x.fecha)} al ${fmtFecha(x.fin)}`;
+    texto = x.texto;
+    if (x.presentacion) extra.push('Presentado el ' + fmtFecha(x.presentacion));
+  } else if (x.tipo === 'estrella') {
+    tag = `<span class="tl-tag tl-estrella">Estrella ${x.sub}</span>`;
+    principal = (x.sub === 'recibida' ? 'De ' : 'A ') + escapeHtml(x.otro);
+    texto = x.texto;
+  } else if (x.tipo === 'ingreso') {
+    tag = '<span class="tl-tag tl-ingreso">Ingreso</span>';
+    principal = escapeHtml(x.hora || '') + ' hs';
+  }
+  return `<div class="tl-item">
+    <div class="tl-fecha">${x.tipo === 'vacaciones' || x.tipo === 'licencia' ? 'Desde ' : ''}${fmtFecha(x.fecha)}</div>
+    <div>
+      <div>${tag}</div>
+      ${principal ? `<div class="tl-main">${principal}</div>` : ''}
+      ${texto ? `<div class="tl-text">${escapeHtml(texto)}</div>` : ''}
+      ${extra.length ? `<div class="tl-extra">${extra.join('\n')}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function visiblesFicha(ev, filtro) {
+  if (filtro === 'todo') return ev.filter(x => x.tipo !== 'ingreso');
+  return ev.filter(x => FICHA_GRUPOS[filtro].includes(x.tipo));
+}
+
+function renderFichaLista() {
+  const e = empleados.find(x => x.id === fichaEmpleadoId);
+  if (!e) return;
+  const ev = eventosFicha(e);
+  const cuenta = (f) => visiblesFicha(ev, f).length;
+  document.getElementById('fichaChips').innerHTML = FICHA_FILTROS.map(([k, label]) =>
+    `<button class="sub-tab-btn${k === fichaFiltro ? ' active' : ''}" data-f="${k}">${label} (${cuenta(k)})</button>`).join('');
+  document.querySelectorAll('#fichaTiles .ficha-tile').forEach(t => t.classList.toggle('on', t.dataset.f === fichaFiltro));
+  document.getElementById('fichaNota').textContent = fichaFiltro === 'todo'
+    ? 'Todo lo cargado, del más reciente al más antiguo. Los ingresos diarios no se incluyen acá: están en la solapa "Ingresos".' : '';
+  let items = visiblesFicha(ev, fichaFiltro);
+  let aviso = '';
+  if (fichaFiltro === 'ingresos' && items.length > 100) { aviso = `<p class="ficha-nota">Mostrando los últimos 100 de ${items.length} ingresos.</p>`; items = items.slice(0, 100); }
+  document.getElementById('fichaLista').innerHTML = aviso + (items.length ? items.map(htmlEventoFicha).join('') : '<div class="empty">No hay registros de este tipo para esta persona.</div>');
+}
+
+function abrirFicha(id, filtro) {
+  const e = empleados.find(x => x.id === id);
+  if (!e) return;
+  fichaEmpleadoId = id;
+  fichaFiltro = (filtro && FICHA_GRUPOS[filtro]) ? filtro : 'todo';
+  const ev = eventosFicha(e);
+  const n = (t) => ev.filter(x => x.tipo === t).length;
+  const estado = estadoActualEmpleado(e.id);
+  const desvinculado = e.estadoLaboral === 'Desvinculado';
+  const anio = new Date().getFullYear();
+
+  document.getElementById('fichaTop').innerHTML = `
+    <div>
+      <span class="tag ${claseGimnasio(e.gimnasio)}">${escapeHtml(e.gimnasio)}</span>
+      <span class="semaforo-badge ${estado}"><span class="dot ${estado}"></span>${semLabels[estado]}</span>
+      ${desvinculado ? `<span class="alert-badge">Desvinculado${e.fechaDesvinculacion ? ' (' + fmtFecha(e.fechaDesvinculacion) + ')' : ''}</span>` : ''}
+      <h2>${escapeHtml(e.nombre)}</h2>
+      <p class="role">${escapeHtml(e.area || 'Sin área asignada')}</p>
+    </div>
+    <div class="ficha-acciones">
+      <button class="btn secondary small" data-acc="editar">Editar datos</button>
+      <button class="btn small" data-acc="cerrar">Cerrar</button>
+    </div>`;
+
+  let onboardingHtml = '';
+  if (e.fechaIngreso && e.fechaIngreso > ONBOARDING_DESDE) {
+    const hechas = onboardingCompletadas(e);
+    onboardingHtml = `<div class="ficha-ob"><strong>Onboarding: ${hechas}/${ONBOARDING_TAREAS.length}</strong><br>` +
+      ONBOARDING_TAREAS.map(t => { const d = onboardingDe(e)[t.id] || {}; return (d.hecha ? '✓ ' : '○ ') + escapeHtml(t.label) + (d.hecha && d.fecha ? ' (' + fmtFecha(d.fecha) + ')' : ''); }).join('<br>') + '</div>';
+  }
+  const fila = (k, v) => `<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  document.getElementById('fichaDatos').innerHTML =
+    fila('DNI', escapeHtml(e.dni)) + fila('CUIL', escapeHtml(e.cuil || '—')) +
+    fila('Nacimiento', e.fechaNacimiento ? fmtFecha(e.fechaNacimiento) : '—') + fila('Dirección', escapeHtml(e.direccion || '—')) +
+    fila('Ingresó', e.fechaIngreso ? fmtFecha(e.fechaIngreso) + ' ' + antiguedad(e.fechaIngreso) : '—') + fila('Teléfono', escapeHtml(e.telefono || '—')) +
+    fila('Contacto alt.', escapeHtml(e.contacto || '—')) +
+    fila('Emergencia', e.emergNombre || e.emergTelefono ? escapeHtml((e.emergNombre || 'Sin nombre') + ' · ' + (e.emergTelefono || 'Sin teléfono')) : '—') +
+    fila('Responsable', escapeHtml(e.responsable || '—')) + onboardingHtml;
+
+  const dias = diasSinReunion(e.id);
+  const evals = ev.filter(x => x.tipo === 'evaluacion');
+  const ultEval = evals.find(x => x.obtenido !== undefined && x.obtenido !== null && x.obtenido !== '' && x.total);
+  const novAnio = ev.filter(x => x.tipo === 'novedad' && x.fecha && x.fecha.startsWith(String(anio))).length;
+  const vacs = ev.filter(x => x.tipo === 'vacaciones');
+  const diasVac = vacs.filter(v => v.estado === 'Aprobado').reduce((s, v) => s + diasDelAnioFicha(v.fecha, v.fin, anio), 0);
+  const recib = ev.filter(x => x.tipo === 'estrella' && x.sub === 'recibida').length;
+  const dadas = ev.filter(x => x.tipo === 'estrella' && x.sub === 'dada').length;
+  const ultIng = ev.find(x => x.tipo === 'ingreso');
+  const tile = (f, k, v, s) => `<div class="ficha-tile" data-f="${f}"><div class="tk">${k}</div><div class="tv">${v}</div><div class="ts">${s}</div></div>`;
+  document.getElementById('fichaTiles').innerHTML =
+    tile('reuniones', 'Reuniones', n('reunion'), dias === null ? 'Sin reuniones' : 'Última hace ' + dias + (dias === 1 ? ' día' : ' días')) +
+    tile('evaluaciones', 'Evaluaciones', n('evaluacion'), ultEval ? 'Última: ' + ultEval.obtenido + '/' + ultEval.total : '&nbsp;') +
+    tile('novedades', 'Novedades', n('novedad'), novAnio + ' en ' + anio) +
+    tile('vacaciones', 'Vacaciones ' + anio, diasVac + (diasVac === 1 ? ' día' : ' días'), vacs.length + ' solicitud(es)') +
+    tile('licencias', 'Licencias', n('licencia'), '&nbsp;') +
+    tile('estrellas', 'Estrellas', recib + ' / ' + dadas, 'recibidas / dadas') +
+    tile('ingresos', 'Ingresos', n('ingreso'), ultIng ? 'Último: ' + fmtFecha(ultIng.fecha) + ' ' + escapeHtml(ultIng.hora || '') : 'Sin ingresos');
+
+  renderFichaLista();
+  document.getElementById('overlayFicha').classList.add('open');
+  const modal = document.querySelector('#overlayFicha .modal');
+  modal.scrollTop = 0;
+  if (fichaFiltro !== 'todo') {
+    // abrió desde un atajo: bajar hasta la lista (dejando visible el encabezado fijo)
+    const desfase = document.getElementById('fichaChips').getBoundingClientRect().top - modal.getBoundingClientRect().top - document.getElementById('fichaTop').offsetHeight - 10;
+    modal.scrollTop = Math.max(0, desfase);
+  }
+}
+function cerrarFicha() {
+  document.getElementById('overlayFicha').classList.remove('open');
+  fichaEmpleadoId = null;
+}
+document.getElementById('fichaChips').addEventListener('click', (ev) => {
+  const b = ev.target.closest('.sub-tab-btn'); if (!b) return;
+  fichaFiltro = b.dataset.f; renderFichaLista();
+});
+document.getElementById('fichaTiles').addEventListener('click', (ev) => {
+  const t = ev.target.closest('.ficha-tile'); if (!t) return;
+  fichaFiltro = t.dataset.f; renderFichaLista();
+});
+document.getElementById('fichaTop').addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-acc]'); if (!b) return;
+  if (b.dataset.acc === 'cerrar') cerrarFicha();
+  if (b.dataset.acc === 'editar') { const id = fichaEmpleadoId; cerrarFicha(); editarEmpleado(id); }
+});
+document.getElementById('overlayFicha').addEventListener('click', (ev) => { if (ev.target.id === 'overlayFicha') cerrarFicha(); });
+document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && document.getElementById('overlayFicha').classList.contains('open')) cerrarFicha(); });
 
 function toggleBloque(id) {
   const el = document.getElementById(id);
@@ -2944,6 +3298,8 @@ document.getElementById('gerenciaLockBtn').addEventListener('click', async () =>
     renderGerenciaObservaciones();
     renderGerenciaReuniones();
     renderTodosLosChipsConfig();
+    await refrescarAgendaDesdeBase();
+    renderGerenciaAgenda();
     document.getElementById('diasAlertaActualTexto').textContent = DIAS_ALERTA;
     document.getElementById('configDiasAlerta').value = DIAS_ALERTA;
   } else {
@@ -3021,6 +3377,139 @@ function renderGerenciaObservaciones() {
       <div class="card-body"><p>${escapeHtml(o.texto)}</p></div>
     </div>`).join('');
 }
+
+/* ---------- AGENDA DE GERENCIA (notas para no olvidarse) ---------- */
+function hoyLocalISO() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function sumarDiasISO(iso, n) {
+  const [y, m, d] = iso.split('-').map(Number);
+  const f = new Date(y, m - 1, d + n);
+  return f.getFullYear() + '-' + String(f.getMonth() + 1).padStart(2, '0') + '-' + String(f.getDate()).padStart(2, '0');
+}
+function etiquetaFechaAg(x) {
+  if (!x.fecha) return 'Sin fecha';
+  const hoy = hoyLocalISO();
+  let txt;
+  if (x.fecha === hoy) txt = 'Hoy';
+  else if (x.fecha === sumarDiasISO(hoy, 1)) txt = 'Mañana';
+  else if (x.fecha === sumarDiasISO(hoy, -1)) txt = 'Ayer';
+  else {
+    const [y, m, d] = x.fecha.split('-').map(Number);
+    const dia = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'][new Date(y, m - 1, d).getDay()];
+    txt = dia + ' ' + String(d).padStart(2, '0') + '/' + String(m).padStart(2, '0') + (y !== new Date().getFullYear() ? '/' + y : '');
+  }
+  txt = txt.charAt(0).toUpperCase() + txt.slice(1); // mayúscula inicial solo en la fecha (así «hs» queda en minúscula)
+  return txt + (x.hora ? ' · ' + x.hora + ' hs' : '');
+}
+
+// Cada cambio lee primero la agenda vigente en la base y le aplica SOLO ese cambio, para no pisar lo que haya cargado otra persona.
+async function modificarAgenda(mutar) {
+  let fresca;
+  try {
+    const r = await window.storage.getStrict(K_GER_AGENDA);
+    fresca = r ? JSON.parse(r.value) : [];
+  } catch (e) { await customAlert('No se pudo leer la agenda. Revisá tu conexión y probá de nuevo.'); return false; }
+  const nueva = mutar(fresca);
+  try { await window.storage.set(K_GER_AGENDA, JSON.stringify(nueva), true); }
+  catch (e) { await customAlert('No se pudo guardar. Intenta de nuevo.'); return false; }
+  gerenciaAgenda = nueva;
+  return true;
+}
+async function refrescarAgendaDesdeBase() {
+  try {
+    const r = await window.storage.getStrict(K_GER_AGENDA);
+    gerenciaAgenda = r ? JSON.parse(r.value) : [];
+  } catch (e) { /* se queda con lo que ya había en pantalla */ }
+}
+
+function itemHtmlAg(x, venc) {
+  return `<div class="ag-item${venc ? ' venc' : ''}${x.hecha ? ' hecha' : ''}">
+    <input type="checkbox" ${x.hecha ? 'checked' : ''} onchange="toggleHechaGerAg('${x.id}', this.checked)" title="Marcar como hecha">
+    <div>
+      <div class="ag-fecha">${escapeHtml(etiquetaFechaAg(x))}</div>
+      <div class="ag-texto">${escapeHtml(x.texto)}</div>
+    </div>
+    <div class="ag-acciones">
+      <button class="btn secondary small" onclick="editarGerAg('${x.id}')">Editar</button>
+      <button class="btn danger small" onclick="eliminarGerAg('${x.id}')">Eliminar</button>
+    </div>
+  </div>`;
+}
+
+function renderGerenciaAgenda() {
+  const hoy = hoyLocalISO();
+  const verHechas = document.getElementById('chkGerAgHechas').checked;
+  const pendientes = gerenciaAgenda.filter(x => !x.hecha);
+  const hechas = gerenciaAgenda.filter(x => x.hecha);
+  const orden = (a, b) => (a.fecha || '9999').localeCompare(b.fecha || '9999') || (a.hora || '').localeCompare(b.hora || '') || (a.creadoEn || 0) - (b.creadoEn || 0);
+  const vencidas = pendientes.filter(x => x.fecha && x.fecha < hoy).sort(orden);
+  const deHoy = pendientes.filter(x => x.fecha === hoy).sort(orden);
+  const proximas = pendientes.filter(x => x.fecha && x.fecha > hoy).sort(orden);
+  const sinFecha = pendientes.filter(x => !x.fecha).sort(orden);
+
+  document.getElementById('statusGerAg').textContent = pendientes.length
+    ? pendientes.length + ' pendiente(s)' + (vencidas.length ? ' · ' + vencidas.length + ' vencida(s)' : '')
+    : 'Sin notas pendientes';
+
+  const grupo = (clase, titulo, items, venc) => items.length
+    ? `<div class="ag-grupo ${clase}">${titulo} (${items.length})</div>` + items.map(x => itemHtmlAg(x, venc)).join('') : '';
+  let html = grupo('venc', 'Vencidas', vencidas, true) + grupo('hoy', 'Hoy', deHoy, false) + grupo('prox', 'Próximas', proximas, false) + grupo('sinf', 'Sin fecha', sinFecha, false);
+  if (verHechas && hechas.length) {
+    hechas.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+    html += `<div class="ag-grupo">Hechas (${hechas.length})</div>` + hechas.map(x => itemHtmlAg(x, false)).join('');
+  }
+  document.getElementById('listaGerAg').innerHTML = html || '<div class="empty">No hay notas pendientes.<br>Cargá la primera con "+ Nueva nota".</div>';
+}
+
+function abrirModalGerAg(x) {
+  editingGerAgId = x ? x.id : null;
+  document.getElementById('modalTitleGerAg').textContent = x ? 'Editar nota de agenda' : 'Nueva nota de agenda';
+  document.getElementById('gerAgFecha').value = x ? (x.fecha || '') : hoyLocalISO();
+  document.getElementById('gerAgHora').value = x ? (x.hora || '') : '';
+  document.getElementById('gerAgTexto').value = x ? x.texto : '';
+  document.getElementById('formErrorGerAg').style.display = 'none';
+  document.getElementById('overlayGerAg').classList.add('open');
+  setTimeout(() => document.getElementById('gerAgTexto').focus(), 50);
+}
+function cerrarModalGerAg() {
+  document.getElementById('overlayGerAg').classList.remove('open');
+  document.getElementById('formGerAg').reset();
+  editingGerAgId = null;
+}
+function editarGerAg(id) {
+  const x = gerenciaAgenda.find(a => a.id === id);
+  if (x) abrirModalGerAg(x);
+}
+async function toggleHechaGerAg(id, hecha) {
+  await modificarAgenda(arr => arr.map(x => x.id === id ? Object.assign({}, x, { hecha, hechaEn: hecha ? Date.now() : null }) : x));
+  renderGerenciaAgenda(); // también si falló: así el tilde vuelve a reflejar lo que realmente quedó guardado
+}
+async function eliminarGerAg(id) {
+  if (!(await customConfirm('¿Eliminar esta nota de la agenda? Esta acción no se puede deshacer.'))) return;
+  await modificarAgenda(arr => arr.filter(x => x.id !== id));
+  renderGerenciaAgenda();
+}
+document.getElementById('btnNuevoGerAg').addEventListener('click', () => abrirModalGerAg(null));
+document.getElementById('chkGerAgHechas').addEventListener('change', renderGerenciaAgenda);
+document.getElementById('btnCancelarGerAg').addEventListener('click', cerrarModalGerAg);
+document.getElementById('overlayGerAg').addEventListener('click', (ev) => { if (ev.target.id === 'overlayGerAg') cerrarModalGerAg(); });
+document.getElementById('btnGuardarGerAg').addEventListener('click', async (ev) => {
+  ev.preventDefault();
+  const fecha = document.getElementById('gerAgFecha').value;
+  const hora = document.getElementById('gerAgHora').value;
+  const texto = document.getElementById('gerAgTexto').value.trim();
+  const errEl = document.getElementById('formErrorGerAg');
+  if (!texto) { errEl.textContent = 'Escribí la nota antes de guardar.'; errEl.style.display = 'block'; return; }
+  if (hora && !fecha) { errEl.textContent = 'Para poner una hora, elegí también la fecha.'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
+  const id = editingGerAgId;
+  const ok = await modificarAgenda(arr => id
+    ? arr.map(x => x.id === id ? Object.assign({}, x, { fecha, hora, texto }) : x)
+    : arr.concat([{ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), fecha, hora, texto, hecha: false, creadoEn: Date.now() }]));
+  if (ok) { cerrarModalGerAg(); renderGerenciaAgenda(); }
+});
 
 // --- Reuniones con coordinadores ---
 document.getElementById('subTabsGerReu').addEventListener('click', (ev) => {
