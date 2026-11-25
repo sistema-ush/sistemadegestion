@@ -1737,6 +1737,19 @@ function estadoActualEmpleado(empleadoId) {
   return hist.length ? hist[hist.length - 1].estado : 'sin-evaluar';
 }
 
+// Una persona desvinculada no cuenta en semáforo, conteos ni alertas: solo queda su perfil.
+function esActivo(e) { return (e.estadoLaboral || 'Activo') === 'Activo'; }
+function idsActivos() { return new Set(empleados.filter(esActivo).map(e => e.id)); }
+// Personas desvinculadas: nada de lo cargado sobre ellas se muestra ni cuenta en ningún lado.
+// Sigue guardado por si se las reactiva; "Eliminar" lo borra de verdad.
+function idsDesvinculados() { return new Set(empleados.filter(e => !esActivo(e)).map(e => e.id)); }
+function informesVisibles() { const d = idsDesvinculados(); return informes.filter(x => !d.has(x.empleadoId)); }
+function faltasVisibles() { const d = idsDesvinculados(); return faltas.filter(x => !d.has(x.empleadoId)); }
+function vacacionesVisibles() { const d = idsDesvinculados(); return vacaciones.filter(x => !d.has(x.empleadoId)); }
+function licenciasVisibles() { const d = idsDesvinculados(); return licencias.filter(x => !d.has(x.empleadoId)); }
+function fichadasVisibles() { const d = idsDesvinculados(); return fichadas.filter(x => !d.has(x.empleadoId)); }
+function buenasPracticasVisibles() { const d = idsDesvinculados(); return buenasPracticas.filter(b => !d.has(b.receptorId) && !d.has(b.dadaPorId)); }
+
 function antiguedad(fechaIngreso) {
   if (!fechaIngreso) return '';
   const ingreso = new Date(fechaIngreso + 'T00:00:00');
@@ -1951,6 +1964,7 @@ async function guardarUltimaVistaBp() {
 }
 
 function actualizarBadgeBp() {
+  const buenasPracticas = buenasPracticasVisibles();
   const nuevas = buenasPracticas.filter(b => (b.creadoEn || 0) > ultimaVistaBp).length;
   const badge = document.getElementById('badgeBp');
   if (nuevas > 0) { badge.textContent = nuevas; badge.style.display = 'inline-block'; }
@@ -2044,26 +2058,29 @@ function poblarAnios() {
 }
 
 function renderDashboard() {
-  const total = empleados.filter(e => (e.estadoLaboral || 'Activo') === 'Activo').length;
-  const verdes = empleados.filter(e => estadoActualEmpleado(e.id) === 'verde').length;
-  const amarillos = empleados.filter(e => estadoActualEmpleado(e.id) === 'amarillo').length;
-  const rojos = empleados.filter(e => estadoActualEmpleado(e.id) === 'rojo').length;
+  const informes = informesVisibles(), faltas = faltasVisibles(), licencias = licenciasVisibles(), vacaciones = vacacionesVisibles(), buenasPracticas = buenasPracticasVisibles();
+  const activosLista = empleados.filter(esActivo);
+  const idsAct = new Set(activosLista.map(e => e.id));
+  const total = activosLista.length;
+  const verdes = activosLista.filter(e => estadoActualEmpleado(e.id) === 'verde').length;
+  const amarillos = activosLista.filter(e => estadoActualEmpleado(e.id) === 'amarillo').length;
+  const rojos = activosLista.filter(e => estadoActualEmpleado(e.id) === 'rojo').length;
   const mesActual = new Date().toISOString().slice(0,7);
   const informesDelMes = informes.filter(i => i.fecha && i.fecha.startsWith(mesActual)).length;
-  const sinReunionReciente = empleados.filter(e => {
+  const sinReunionReciente = activosLista.filter(e => {
     const dias = diasSinReunion(e.id);
     return dias === null || dias > DIAS_ALERTA;
   }).length;
-  const conLicenciaHoy = licencias.filter(l => estaVigenteHoy(l)).length;
+  const conLicenciaHoy = licencias.filter(l => idsAct.has(l.empleadoId) && estaVigenteHoy(l)).length;
 
   const hoyStr = new Date().toISOString().slice(0,10);
-  const deVacacionesHoy = vacaciones.filter(v => v.estado === 'Aprobado' && v.fechaInicio <= hoyStr && v.fechaFin >= hoyStr).length;
-  const vacacionesPendientes = vacaciones.filter(v => v.estado === 'Pendiente').length;
+  const deVacacionesHoy = vacaciones.filter(v => idsAct.has(v.empleadoId) && v.estado === 'Aprobado' && v.fechaInicio <= hoyStr && v.fechaFin >= hoyStr).length;
+  const vacacionesPendientes = vacaciones.filter(v => idsAct.has(v.empleadoId) && v.estado === 'Pendiente').length;
   const faltasDelMes = faltas.filter(f => f.fecha && f.fecha.startsWith(mesActual)).length;
 
   const estrellasDelMes = buenasPracticas.filter(b => b.fecha && b.fecha.startsWith(mesActual)).length;
 
-  const antiguedades = empleados.filter(e => e.fechaIngreso).map(e => anosDesde(e.fechaIngreso));
+  const antiguedades = activosLista.filter(e => e.fechaIngreso).map(e => anosDesde(e.fechaIngreso));
   const antiguedadPromedio = antiguedades.length ? (antiguedades.reduce((a,b) => a+b, 0) / antiguedades.length) : null;
 
   const activo = dashboardDetalleActivo;
@@ -2101,19 +2118,21 @@ function mostrarDetalleDashboard(tipo) {
 }
 
 function renderDetalleDashboard() {
+  const informes = informesVisibles(), faltas = faltasVisibles(), licencias = licenciasVisibles(), vacaciones = vacacionesVisibles(), buenasPracticas = buenasPracticasVisibles();
   const el = document.getElementById('dashboardDetalle');
   if (!dashboardDetalleActivo) { el.innerHTML = ''; return; }
 
   let titulo = '';
   let items = [];
+  const idsAct = idsActivos();
 
   if (dashboardDetalleActivo === 'total') {
     titulo = 'Empleados activos';
-    items = empleados.filter(e => (e.estadoLaboral || 'Activo') === 'Activo').sort((a,b) => a.nombre.localeCompare(b.nombre))
+    items = empleados.filter(esActivo).sort((a,b) => a.nombre.localeCompare(b.nombre))
       .map(e => `<li>${escapeHtml(e.nombre)} <span class="demp">— ${escapeHtml(e.gimnasio)}</span></li>`);
   } else if (['verde','amarillo','rojo'].includes(dashboardDetalleActivo)) {
     titulo = { verde: '🟢 En verde', amarillo: '🟡 En amarillo', rojo: '🔴 En rojo' }[dashboardDetalleActivo];
-    items = empleados.filter(e => estadoActualEmpleado(e.id) === dashboardDetalleActivo)
+    items = empleados.filter(e => esActivo(e) && estadoActualEmpleado(e.id) === dashboardDetalleActivo)
       .sort((a,b) => a.nombre.localeCompare(b.nombre))
       .map(e => `<li>${escapeHtml(e.nombre)} <span class="demp">— ${escapeHtml(e.gimnasio)}</span></li>`);
   } else if (dashboardDetalleActivo === 'informesMes') {
@@ -2128,6 +2147,7 @@ function renderDetalleDashboard() {
   } else if (dashboardDetalleActivo === 'sinReunion') {
     titulo = `Sin reunión hace más de ${DIAS_ALERTA} días`;
     items = empleados.filter(e => {
+      if (!esActivo(e)) return false;
       const dias = diasSinReunion(e.id);
       return dias === null || dias > DIAS_ALERTA;
     }).sort((a,b) => a.nombre.localeCompare(b.nombre)).map(e => {
@@ -2137,20 +2157,20 @@ function renderDetalleDashboard() {
     });
   } else if (dashboardDetalleActivo === 'licenciaHoy') {
     titulo = 'Con licencia o certificado vigente hoy';
-    items = licencias.filter(l => estaVigenteHoy(l)).map(l => {
+    items = licencias.filter(l => idsAct.has(l.empleadoId) && estaVigenteHoy(l)).map(l => {
       const emp = empleados.find(e => e.id === l.empleadoId);
       return `<li>${escapeHtml(emp ? emp.nombre : 'Empleado eliminado')} <span class="demp">— ${escapeHtml(l.tipo)}</span></li>`;
     });
   } else if (dashboardDetalleActivo === 'vacacionesHoy') {
     titulo = 'De vacaciones hoy';
     const hoyStr = new Date().toISOString().slice(0,10);
-    items = vacaciones.filter(v => v.estado === 'Aprobado' && v.fechaInicio <= hoyStr && v.fechaFin >= hoyStr).map(v => {
+    items = vacaciones.filter(v => idsAct.has(v.empleadoId) && v.estado === 'Aprobado' && v.fechaInicio <= hoyStr && v.fechaFin >= hoyStr).map(v => {
       const emp = empleados.find(e => e.id === v.empleadoId);
       return `<li>${escapeHtml(emp ? emp.nombre : 'Empleado eliminado')} <span class="demp">— vuelve el ${fmtFecha(fechaReincorporacion(v.fechaFin))}</span></li>`;
     });
   } else if (dashboardDetalleActivo === 'vacacionesPendientes') {
     titulo = 'Vacaciones pendientes de aprobar';
-    items = vacaciones.filter(v => v.estado === 'Pendiente').sort((a,b) => a.fechaInicio.localeCompare(b.fechaInicio)).map(v => {
+    items = vacaciones.filter(v => idsAct.has(v.empleadoId) && v.estado === 'Pendiente').sort((a,b) => a.fechaInicio.localeCompare(b.fechaInicio)).map(v => {
       const emp = empleados.find(e => e.id === v.empleadoId);
       return `<li>${escapeHtml(emp ? emp.nombre : 'Empleado eliminado')} <span class="demp">— ${fmtFecha(v.fechaInicio)} a ${fmtFecha(v.fechaFin)}</span></li>`;
     });
@@ -2173,7 +2193,7 @@ function renderDetalleDashboard() {
       });
   } else if (dashboardDetalleActivo === 'antiguedadProm') {
     titulo = 'Antigüedad de cada empleado';
-    items = empleados.filter(e => e.fechaIngreso)
+    items = empleados.filter(e => esActivo(e) && e.fechaIngreso)
       .map(e => ({ e, anios: anosDesde(e.fechaIngreso) }))
       .sort((a,b) => b.anios - a.anios)
       .map(x => `<li>${escapeHtml(x.e.nombre)} <span class="demp">— ${x.anios.toFixed(1)} años (ingresó ${fmtFecha(x.e.fechaIngreso)})</span></li>`);
@@ -2244,7 +2264,11 @@ function renderEmpleados() {
   });
   filtrados.sort((a,b) => a.nombre.localeCompare(b.nombre));
 
-  document.getElementById('statusEmp').textContent = filtrados.length + ' de ' + empleados.length + ' empleado(s)';
+  const nDesv = empleados.filter(e => !esActivo(e)).length;
+  let enlaceEstado = '';
+  if (estadoLab === 'Activo' && nDesv) enlaceEstado = ` · <span class="toggle-link" onclick="filtrarEstadoEmp('Desvinculado')">${nDesv} desvinculado(s): ver</span>`;
+  else if (estadoLab === 'Desvinculado') enlaceEstado = ' · <span class="toggle-link" onclick="filtrarEstadoEmp(\'Activo\')">Volver a los activos</span>';
+  document.getElementById('statusEmp').innerHTML = escapeHtml(filtrados.length + ' de ' + empleados.length + ' empleado(s)') + enlaceEstado;
   const lista = document.getElementById('listaEmp');
   if (filtrados.length === 0) {
     lista.innerHTML = '<div class="empty">No hay empleados que coincidan.<br>Carga el primero con "+ Nuevo empleado".</div>';
@@ -2254,8 +2278,8 @@ function renderEmpleados() {
   lista.innerHTML = filtrados.map(e => {
     const estado = estadoActualEmpleado(e.id);
     const desvinculado = e.estadoLaboral === 'Desvinculado';
-    const aplicaOnboarding = e.fechaIngreso && e.fechaIngreso > ONBOARDING_DESDE;
-    const enPeriodoPrueba = !!e.periodoPruebaManual;
+    const aplicaOnboarding = !desvinculado && e.fechaIngreso && e.fechaIngreso > ONBOARDING_DESDE;
+    const enPeriodoPrueba = !desvinculado && !!e.periodoPruebaManual;
     let onboardingHtml = '';
     if (aplicaOnboarding) {
       const obHechas = onboardingCompletadas(e);
@@ -2283,7 +2307,9 @@ function renderEmpleados() {
     informes.forEach(i => { const t = tipoInformeParaFicha(i, e); if (t === 'evaluacion') nEvaluaciones++; else if (t) nReuniones++; });
     const dias = diasSinReunion(e.id);
     let alertaHtml = '';
-    if (dias === null) {
+    if (desvinculado) {
+      alertaHtml = '';
+    } else if (dias === null) {
       alertaHtml = '<span class="alert-badge">Sin reuniones registradas</span>';
     } else if (dias > DIAS_ALERTA) {
       alertaHtml = `<span class="alert-badge">Hace ${dias} días sin reunión</span>`;
@@ -2294,19 +2320,19 @@ function renderEmpleados() {
       <div class="card-head">
         <div>
           <span class="tag ${claseGimnasio(e.gimnasio)}">${escapeHtml(e.gimnasio)}</span>
-          <span class="semaforo-badge ${estado}"><span class="dot ${estado}"></span>${semLabels[estado]}</span>
+          ${desvinculado ? '' : `<span class="semaforo-badge ${estado}"><span class="dot ${estado}"></span>${semLabels[estado]}</span>`}
           ${desvinculado ? `<span class="alert-badge">Desvinculado ${e.fechaDesvinculacion ? '(' + fmtFecha(e.fechaDesvinculacion) + ')' : ''}</span>` : ''}
           ${alertaHtml}
           <p class="name toggle-link" onclick="toggleBloque('detalle-emp-${e.id}')">${escapeHtml(e.nombre)}${enPeriodoPrueba ? ' <span style="font-weight:400; font-size:13px; color:var(--muted);">(Período de prueba)</span>' : ''} <span style="font-size:12px;">▾</span></p>
           <p class="role">${escapeHtml(e.area || 'Sin área asignada')}</p>
-          <div class="card-shortcuts">
+          ${desvinculado ? '' : `<div class="card-shortcuts">
             <span class="toggle-link" onclick="abrirFicha('${e.id}', 'reuniones')">Reuniones (${nReuniones})</span>
             <span class="toggle-link" onclick="abrirFicha('${e.id}', 'evaluaciones')">Evaluaciones de desempeño (${nEvaluaciones})</span>
-          </div>
+          </div>`}
         </div>
-        <div class="card-actions" style="margin-top:0;">
+        ${desvinculado ? '' : `<div class="card-actions" style="margin-top:0;">
           <button class="btn secondary small" onclick="abrirFicha('${e.id}')">Ver ficha completa</button>
-        </div>
+        </div>`}
       </div>
       <div id="detalle-emp-${e.id}" style="display:none;">
         <div class="rows">
@@ -2322,7 +2348,7 @@ function renderEmpleados() {
         </div>
         ${onboardingHtml}
         <div class="card-actions">
-          <button class="btn secondary small" onclick="editarEmpleado('${e.id}')">Editar</button>
+          ${desvinculado ? '' : `<button class="btn secondary small" onclick="editarEmpleado('${e.id}')">Editar</button>`}
           <button class="btn secondary small" onclick="toggleDesvinculado('${e.id}')">${desvinculado ? 'Reactivar' : 'Marcar como desvinculado'}</button>
           <button class="btn danger small" onclick="eliminarEmpleado('${e.id}')">Eliminar</button>
         </div>
@@ -2365,6 +2391,7 @@ function tipoInformeParaFicha(i, e) {
 
 // Junta TODO lo cargado de una persona. No incluye datos de Gerencia ni Observaciones (no están atados a un empleado).
 function eventosFicha(e) {
+  const buenasPracticas = buenasPracticasVisibles();
   const ev = [];
   informes.forEach(i => {
     const t = tipoInformeParaFicha(i, e);
@@ -2456,7 +2483,7 @@ function renderFichaLista() {
 
 function abrirFicha(id, filtro) {
   const e = empleados.find(x => x.id === id);
-  if (!e) return;
+  if (!e || !esActivo(e)) return;
   fichaEmpleadoId = id;
   fichaFiltro = (filtro && FICHA_GRUPOS[filtro]) ? filtro : 'todo';
   const ev = eventosFicha(e);
@@ -2542,6 +2569,19 @@ document.getElementById('fichaTop').addEventListener('click', (ev) => {
 document.getElementById('overlayFicha').addEventListener('click', (ev) => { if (ev.target.id === 'overlayFicha') cerrarFicha(); });
 document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && document.getElementById('overlayFicha').classList.contains('open')) cerrarFicha(); });
 
+// Vuelve a dibujar todo lo que depende de qué personas están activas o existen.
+function refrescarTodoTrasCambioDePersona() {
+  poblarSelectEmpleados(); poblarSelectEmpleadosFal(); poblarSelectEmpleadosVac(); poblarSelectEmpleadosLic(); poblarSelectEmpleadosEval(); poblarSelectEmpleadosBp(); poblarSelectEmpleadosFich();
+  renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados();
+  renderInformes(); renderEvaluaciones(); renderReconocimiento(); renderFaltas(); renderVacaciones(); renderCalendario(); renderLicencias();
+  renderBuenasPracticas(); renderFichadas(); actualizarBadgeBp();
+}
+
+function filtrarEstadoEmp(valor) {
+  document.getElementById('fEstadoLaboral').value = valor;
+  renderEmpleados();
+}
+
 function toggleBloque(id) {
   const el = document.getElementById(id);
   if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
@@ -2576,11 +2616,35 @@ function editarEmpleado(id) {
   const e = empleados.find(x => x.id === id);
   if (e) abrirModalEmp(e);
 }
+// Los ingresos los carga la página del equipo: se relee lo vigente antes de quitar los de esta persona, para no pisar los de otros.
+async function quitarFichadasDe(id) {
+  try {
+    const r = await window.storage.getStrict(K_FICH);
+    const vigentes = r ? JSON.parse(r.value) : [];
+    const nuevas = vigentes.filter(f => f.empleadoId !== id);
+    if (nuevas.length !== vigentes.length) await window.storage.set(K_FICH, JSON.stringify(nuevas), true);
+    fichadas = nuevas;
+    return true;
+  } catch (e) { return false; }
+}
 async function eliminarEmpleado(id) {
-  if (!(await customConfirm('¿Eliminar DEFINITIVAMENTE a este empleado de la base? Esta acción no se puede deshacer. Si la persona se desvinculó, es mejor usar "Marcar como desvinculado" para conservar su historial.'))) return;
+  const emp = empleados.find(x => x.id === id);
+  if (!emp) return;
+  if (!(await customConfirm('¿Eliminar DEFINITIVAMENTE a ' + emp.nombre + '? Se borra su perfil y TODO lo cargado sobre esa persona (reuniones, evaluaciones, novedades, vacaciones, licencias, estrellas e ingresos). Esta acción no se puede deshacer.'))) return;
+  informes = informes.filter(x => x.empleadoId !== id);
+  faltas = faltas.filter(x => x.empleadoId !== id);
+  vacaciones = vacaciones.filter(x => x.empleadoId !== id);
+  licencias = licencias.filter(x => x.empleadoId !== id);
+  reconocimientos = reconocimientos.filter(x => x.empleadoId !== id);
+  buenasPracticas = buenasPracticas.filter(x => x.receptorId !== id && x.dadaPorId !== id);
+  // Primero sus registros y al final su perfil: si algo falla a mitad de camino, se puede volver a intentar.
+  for (const guardar of [guardarInformes, guardarFaltas, guardarVacaciones, guardarLicencias, guardarReconocimientos, guardarBuenasPracticas]) {
+    if (!(await guardar())) return;
+  }
+  if (!(await quitarFichadasDe(id))) { await customAlert('No se pudieron borrar los ingresos de esta persona. Probá de nuevo.'); return; }
   empleados = empleados.filter(x => x.id !== id);
-  const ok = await guardarEmpleados();
-  if (ok) { poblarSelectEmpleados(); renderDashboard(); renderCumpleanios(); renderSeguimientoPrueba(); renderEmpleados(); renderInformes(); renderEvaluaciones(); }
+  if (!(await guardarEmpleados())) return;
+  refrescarTodoTrasCambioDePersona();
 }
 async function toggleDesvinculado(id) {
   const idx = empleados.findIndex(x => x.id === id);
@@ -2589,7 +2653,7 @@ async function toggleDesvinculado(id) {
   const yaDesvinculado = emp.estadoLaboral === 'Desvinculado';
   const mensaje = yaDesvinculado
     ? '¿Reactivar a este empleado como Activo?'
-    : '¿Marcar a este empleado como Desvinculado? Se conserva todo su historial, pero deja de aparecer para cargar nuevos registros.';
+    : '¿Marcar a este empleado como Desvinculado? Deja de figurar en todos lados (semáforo, conteos, listas y rankings): solo queda su perfil como desvinculado, desde donde podés reactivarlo o eliminarlo.';
   if (!(await customConfirm(mensaje))) return;
   empleados[idx] = {
     ...emp,
@@ -2597,7 +2661,10 @@ async function toggleDesvinculado(id) {
     fechaDesvinculacion: yaDesvinculado ? '' : new Date().toISOString().slice(0,10)
   };
   const ok = await guardarEmpleados();
-  if (ok) { poblarSelectEmpleados(); poblarSelectEmpleadosFal(); poblarSelectEmpleadosVac(); poblarSelectEmpleadosLic(); renderDashboard(); renderEmpleados(); }
+  if (ok) {
+    refrescarTodoTrasCambioDePersona();
+    if (!yaDesvinculado) await customAlert('Listo. Ya no figura en ningún lado. Su perfil quedó en el filtro “Desvinculados” de esta pestaña, desde donde podés eliminarlo.');
+  }
 }
 
 document.getElementById('btnNuevoEmp').addEventListener('click', () => abrirModalEmp(null));
@@ -2652,6 +2719,7 @@ document.getElementById('fBuscarEmp').addEventListener('input', renderEmpleados)
 
 /* ---------- INFORMES ---------- */
 function renderInformes() {
+  const informes = informesVisibles();
   const gim = document.getElementById('fGimnasioInf').value;
   const area = document.getElementById('fAreaInf').value;
   const estadoFiltro = document.getElementById('fEstadoInf').value;
@@ -2911,6 +2979,7 @@ document.getElementById('btnGuardarEval').addEventListener('click', async (ev) =
 });
 
 function renderEvaluaciones() {
+  const informes = informesVisibles();
   const gim = document.getElementById('fGimnasioEval').value;
   const mes = document.getElementById('fMesEval').value;
   const buscar = document.getElementById('fBuscarEval').value.toLowerCase().trim();
@@ -3064,6 +3133,7 @@ function nombreDador(bp) {
 }
 
 function renderBuenasPracticas() {
+  const buenasPracticas = buenasPracticasVisibles();
   renderRankingsBp();
   const receptorFiltroTexto = document.getElementById('fReceptorBp').value.trim().toLowerCase();
   const mes = document.getElementById('fMesBp').value;
@@ -3127,6 +3197,7 @@ function nombrePorIdBp(id) {
 }
 
 function calcularRankingBp(campo) {
+  const buenasPracticas = buenasPracticasVisibles();
   const { anio, trimestre } = cuatrimestreActualCodigo();
   const [inicio, fin] = rangoTrimestre(anio, trimestre);
   const conteo = {};
@@ -3845,6 +3916,7 @@ document.getElementById('btnLimpiarFechaFich').addEventListener('click', () => {
 });
 
 function renderFichadas() {
+  const fichadas = fichadasVisibles();
   const nombreFiltro = document.getElementById('fEmpleadoFich').value.trim().toLowerCase();
   const gimnasioFiltro = document.getElementById('fGimnasioFich').value;
   const fechaFiltro = document.getElementById('fFechaFich').value;
@@ -3899,6 +3971,7 @@ function faltasEnPeriodo(empleadoId, fechaInicio, fechaFin) {
 
 // Cantidad de estrellas (buenas prácticas) recibidas en un período — dato de referencia, no bloquea nada.
 function estrellasRecibidasEnPeriodo(empleadoId, fechaInicio, fechaFin) {
+  const buenasPracticas = buenasPracticasVisibles();
   return buenasPracticas.filter(b => b.receptorId === empleadoId && b.fecha >= fechaInicio && b.fecha <= fechaFin).length;
 }
 
@@ -3919,7 +3992,7 @@ function diasHastaCumple(fechaNacimiento) {
 }
 function renderCumpleanios() {
   const DIAS_VENTANA = 30;
-  const proximos = empleados
+  const proximos = empleados.filter(esActivo)
     .map(e => ({ e, dias: diasHastaCumple(e.fechaNacimiento) }))
     .filter(x => x.dias !== null && x.dias <= DIAS_VENTANA)
     .sort((a,b) => a.dias - b.dias);
@@ -4067,6 +4140,7 @@ function poblarAniosFal() {
 }
 
 function renderFaltas() {
+  const faltas = faltasVisibles();
   const gim = document.getElementById('fGimnasioFal').value;
   const aspecto = document.getElementById('fAspectoFal').value;
   const mes = document.getElementById('fMesFal').value;
@@ -4273,6 +4347,7 @@ function poblarFiltroAreaVac() {
 }
 
 function renderVacaciones() {
+  const vacaciones = vacacionesVisibles();
   poblarFiltroAreaVac();
   const gim = document.getElementById('fGimnasioVac').value;
   const estado = document.getElementById('fEstadoVac').value;
@@ -4328,6 +4403,7 @@ function renderVacaciones() {
 }
 
 function renderCalendario() {
+  const vacaciones = vacacionesVisibles();
   const gim = document.getElementById('fGimnasioVac').value;
   const estado = document.getElementById('fEstadoVac').value;
   const area = document.getElementById('fAreaVac').value;
@@ -4497,6 +4573,7 @@ function actualizarPreviewLic() {
 }
 
 function renderLicencias() {
+  const licencias = licenciasVisibles();
   const gim = document.getElementById('fGimnasioLic').value;
   const tipo = document.getElementById('fTipoLic').value;
   const mes = document.getElementById('fMesLic').value;
